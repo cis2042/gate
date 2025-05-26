@@ -1,0 +1,197 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PROJECT_ID: twin-gate-prod
+  SERVICE_NAME: twin-gate
+  REGION: asia-east1
+  REGISTRY: gcr.io
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: telegram-bot/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./telegram-bot
+      run: npm ci
+
+    - name: Run linting
+      working-directory: ./telegram-bot
+      run: npm run lint
+
+    - name: Run tests
+      working-directory: ./telegram-bot
+      run: npm test
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        NODE_ENV: test
+
+    - name: Run test coverage
+      working-directory: ./telegram-bot
+      run: npm run test:coverage
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./telegram-bot/coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: './telegram-bot'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Google Cloud CLI
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        project_id: ${{ env.PROJECT_ID }}
+
+    - name: Configure Docker to use gcloud as a credential helper
+      run: gcloud auth configure-docker
+
+    - name: Build Docker image
+      run: |
+        docker build -t $REGISTRY/$PROJECT_ID/$SERVICE_NAME:$GITHUB_SHA \
+                     -t $REGISTRY/$PROJECT_ID/$SERVICE_NAME:latest \
+                     ./telegram-bot
+
+    - name: Push Docker image
+      run: |
+        docker push $REGISTRY/$PROJECT_ID/$SERVICE_NAME:$GITHUB_SHA
+        docker push $REGISTRY/$PROJECT_ID/$SERVICE_NAME:latest
+
+  deploy:
+    name: Deploy to Cloud Run
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Google Cloud CLI
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        project_id: ${{ env.PROJECT_ID }}
+
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy $SERVICE_NAME \
+          --image $REGISTRY/$PROJECT_ID/$SERVICE_NAME:$GITHUB_SHA \
+          --platform managed \
+          --region $REGION \
+          --allow-unauthenticated \
+          --memory 512Mi \
+          --cpu 1 \
+          --concurrency 1000 \
+          --timeout 300 \
+          --max-instances 10 \
+          --set-env-vars "NODE_ENV=production" \
+          --set-env-vars "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" \
+          --set-env-vars "TWIN3_API_KEY=${{ secrets.TWIN3_API_KEY }}" \
+          --set-env-vars "DATABASE_URL=${{ secrets.DATABASE_URL }}" \
+          --add-cloudsql-instances $PROJECT_ID:$REGION:twin-gate-db
+
+    - name: Get service URL
+      run: |
+        SERVICE_URL=$(gcloud run services describe $SERVICE_NAME \
+          --platform managed \
+          --region $REGION \
+          --format 'value(status.url)')
+        echo "Service deployed at: $SERVICE_URL"
+
+  notify:
+    name: Notify Deployment
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    if: always()
+    
+    steps:
+    - name: Notify Telegram
+      if: success()
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: |
+          ✅ Twin Gate deployment successful!
+          
+          📦 Version: ${{ github.sha }}
+          🌐 Environment: Production
+          👤 Deployed by: ${{ github.actor }}
+          🔗 Commit: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
+
+    - name: Notify Telegram on failure
+      if: failure()
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: |
+          ❌ Twin Gate deployment failed!
+          
+          📦 Version: ${{ github.sha }}
+          🌐 Environment: Production
+          👤 Attempted by: ${{ github.actor }}
+          🔗 Check logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}

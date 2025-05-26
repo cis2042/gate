@@ -1,0 +1,48 @@
+{
+  "welcome": {
+    "language_selection": "🌍 *Willkommen bei Twin Gate!*\n\nHallo {{firstName}}! Bitte wählen Sie Ihre Sprache aus, um fortzufahren.",
+    "title": "🚪 *Willkommen bei Twin Gate!*",
+    "subtitle": "Hallo {{firstName}}! Ich bin Ihr Assistent für die Verifizierung der menschlichen Identität.",
+    "description": "Twin Gate verwendet die fortschrittliche Technologie von Twin3.ai für die Verifizierung der menschlichen Identität.",
+    "what_you_get": "✨ *Was Sie erhalten:*\n🏆 Exklusives Twin3 SBT\n📊 Ihr Humanity Index Score (0-255)\n🔐 Dezentrale Identitätsauthentifizierung",
+    "get_started": "🚀 *Loslegen:*\nVerwenden Sie /verify zum Starten\nVerwenden Sie /help für Hilfe\n\nBereit anzufangen?"
+  },
+  "verification": {
+    "task_title": "Aufgabe #001\n\n**Nachweis der Menschlichkeit**",
+    "task_description": "Sie müssen beweisen, dass Sie kein Roboter sind, um Teil von uns zu werden.",
+    "task_info": "Menschliche Verifizierungsaufgaben sind derzeit bis Level 3 geöffnet.",
+    "current_level": "Ihr aktuelles Identitätslevel",
+    "requirement": "Schließen Sie mindestens Level 2 ab, um Ihr kostenloses DNA NFT zu erhalten.",
+    "level1": {
+      "title": "Level 1",
+      "description": "Klicken Sie auf Google ReCAPTCHA V2",
+      "button": "🟢 Level 1 Starten"
+    },
+    "level2": {
+      "title": "Level 2",
+      "description": "Mobile SMS-Identität",
+      "button": "🟡 Level 2 Starten"
+    },
+    "level3": {
+      "title": "Level 3",
+      "description": "Apple ID oder Android-Authentifizierung",
+      "button": "🔴 Level 3 Starten"
+    },
+    "start_verification": "🚀 Verifizierung Starten"
+  },
+  "buttons": {
+    "start_verification": "🚀 Verifizierung Starten",
+    "check_status": "📊 Status Prüfen",
+    "refresh_status": "🔄 Status Aktualisieren",
+    "back_to_main": "🔙 Zurück zum Hauptmenü",
+    "learn_more": "ℹ️ Mehr Erfahren",
+    "next": "Weiter"
+  },
+  "errors": {
+    "general": "❌ Ein Fehler ist aufgetreten, bitte versuchen Sie es später erneut.",
+    "auth_required": "🔐 Authentifizierung erforderlich. Verwenden Sie /start zur Registrierung."
+  },
+  "success": {
+    "language_set": "✅ Sprache auf Deutsch eingestellt"
+  }
+}

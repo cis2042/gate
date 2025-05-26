@@ -1,0 +1,48 @@
+{
+  "welcome": {
+    "language_selection": "🌍 *¡Bienvenido a Twin Gate!*\n\n¡Hola {{firstName}}! Por favor, seleccione su idioma para continuar.",
+    "title": "🚪 *¡Bienvenido a Twin Gate!*",
+    "subtitle": "¡Hola {{firstName}}! Soy su asistente de verificación de identidad humana.",
+    "description": "Twin Gate utiliza la tecnología avanzada de Twin3.ai para la verificación de identidad humana.",
+    "what_you_get": "✨ *Lo que obtendrá:*\n🏆 SBT Twin3 exclusivo\n📊 Su puntuación Humanity Index (0-255)\n🔐 Autenticación de identidad descentralizada",
+    "get_started": "🚀 *Comenzar:*\nUse /verify para empezar\nUse /help para ayuda\n\n¿Listo para comenzar?"
+  },
+  "verification": {
+    "task_title": "Tarea #001\n\n**Prueba de Humanidad**",
+    "task_description": "Debe demostrar que no es un robot para formar parte de nosotros.",
+    "task_info": "Las tareas de verificación humana están actualmente abiertas hasta el nivel 3.",
+    "current_level": "Su nivel de identidad actual",
+    "requirement": "Complete al menos el nivel 2 para obtener su NFT DNA gratuito.",
+    "level1": {
+      "title": "Nivel 1",
+      "description": "Haga clic en Google ReCAPTCHA V2",
+      "button": "🟢 Comenzar Nivel 1"
+    },
+    "level2": {
+      "title": "Nivel 2",
+      "description": "Identidad SMS Móvil",
+      "button": "🟡 Comenzar Nivel 2"
+    },
+    "level3": {
+      "title": "Nivel 3",
+      "description": "Autenticación Apple ID o Android",
+      "button": "🔴 Comenzar Nivel 3"
+    },
+    "start_verification": "🚀 Comenzar Verificación"
+  },
+  "buttons": {
+    "start_verification": "🚀 Comenzar Verificación",
+    "check_status": "📊 Verificar Estado",
+    "refresh_status": "🔄 Actualizar Estado",
+    "back_to_main": "🔙 Volver al Menú",
+    "learn_more": "ℹ️ Saber Más",
+    "next": "Siguiente"
+  },
+  "errors": {
+    "general": "❌ Ocurrió un error, por favor intente más tarde.",
+    "auth_required": "🔐 Autenticación requerida. Use /start para registrarse."
+  },
+  "success": {
+    "language_set": "✅ Idioma establecido en español"
+  }
+}

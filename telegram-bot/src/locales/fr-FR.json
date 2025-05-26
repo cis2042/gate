@@ -1,0 +1,48 @@
+{
+  "welcome": {
+    "language_selection": "🌍 *Bienvenue sur Twin Gate !*\n\nBonjour {{firstName}} ! Veuillez sélectionner votre langue pour continuer.",
+    "title": "🚪 *Bienvenue sur Twin Gate !*",
+    "subtitle": "Bonjour {{firstName}} ! Je suis votre assistant de vérification d'identité humaine.",
+    "description": "Twin Gate utilise la technologie avancée de Twin3.ai pour la vérification d'identité humaine.",
+    "what_you_get": "✨ *Ce que vous obtiendrez :*\n🏆 SBT Twin3 exclusif\n📊 Votre score Humanity Index (0-255)\n🔐 Authentification d'identité décentralisée",
+    "get_started": "🚀 *Commencer :*\nUtilisez /verify pour démarrer\nUtilisez /help pour l'aide\n\nPrêt à commencer ?"
+  },
+  "verification": {
+    "task_title": "Tâche #001\n\n**Preuve d'Humanité**",
+    "task_description": "Vous devez prouver que vous n'êtes pas un robot pour faire partie de nous.",
+    "task_info": "Les tâches de vérification humaine sont actuellement ouvertes jusqu'au niveau 3.",
+    "current_level": "Votre niveau d'identité actuel",
+    "requirement": "Complétez au moins le niveau 2 pour obtenir votre NFT DNA gratuit.",
+    "level1": {
+      "title": "Niveau 1",
+      "description": "Cliquez sur Google ReCAPTCHA V2",
+      "button": "🟢 Commencer Niveau 1"
+    },
+    "level2": {
+      "title": "Niveau 2",
+      "description": "Identité SMS Mobile",
+      "button": "🟡 Commencer Niveau 2"
+    },
+    "level3": {
+      "title": "Niveau 3",
+      "description": "Authentification Apple ID ou Android",
+      "button": "🔴 Commencer Niveau 3"
+    },
+    "start_verification": "🚀 Commencer la Vérification"
+  },
+  "buttons": {
+    "start_verification": "🚀 Commencer la Vérification",
+    "check_status": "📊 Vérifier le Statut",
+    "refresh_status": "🔄 Actualiser le Statut",
+    "back_to_main": "🔙 Retour au Menu",
+    "learn_more": "ℹ️ En Savoir Plus",
+    "next": "Suivant"
+  },
+  "errors": {
+    "general": "❌ Une erreur s'est produite, veuillez réessayer plus tard.",
+    "auth_required": "🔐 Authentification requise. Utilisez /start pour vous inscrire."
+  },
+  "success": {
+    "language_set": "✅ Langue définie en français"
+  }
+}

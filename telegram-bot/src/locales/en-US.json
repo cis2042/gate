@@ -1,0 +1,95 @@
+{
+  "welcome": {
+    "language_selection": "🌍 *Welcome to Twin Gate!*\n\nHello {{firstName}}! Please select your preferred language to continue.",
+    "title": "🚪 *Welcome to Twin Gate!*",
+    "subtitle": "Hello {{firstName}}! I'm your human identity verification assistant.",
+    "description": "Twin Gate uses Twin3.ai advanced technology for human identity verification, helping you obtain your exclusive digital identity proof.",
+    "what_you_get": "✨ *What you'll get:*\n🏆 Exclusive Twin3 SBT (Soul Bound Token)\n📊 Your Humanity Index score (0-255)\n🔐 Decentralized identity authentication",
+    "get_started": "🚀 *Get started:*\nUse /verify to start your verification process\nUse /help to see all available commands\n\nReady to begin?"
+  },
+  "verification": {
+    "task_title": "Task #001\n\n**Proof of Humanity**",
+    "task_description": "You must prove that you are not a robot to become a part of us. Some robots have become so sophisticated that it's hard to distinguish them from real humans. The higher the level of human verification tasks you pass, the more likely you are to be a real human.",
+    "task_info": "Human verification tasks are currently open up to level 3, and you will go through familiar verification methods in everyday life to prove you are not a robot. This process is only used for identity or device recognition and will not retain your personal information.",
+    "current_level": "Your current Identity level",
+    "requirement": "Complete at least level 2 to get your DNA NFT free minting.",
+    "level1": {
+      "title": "Google reCAPTCHA",
+      "description": "Google reCAPTCHA",
+      "button": "Start Level 1"
+    },
+    "level2": {
+      "title": "SMS Verification",
+      "description": "SMS Verification",
+      "button": "Start Level 2"
+    },
+    "level3": {
+      "title": "Biometric Authentication",
+      "description": "Biometric Authentication",
+      "button": "Start Level 3"
+    },
+    "start_verification": "🚀 Start Verification",
+    "verification_in_progress": {
+      "level1_title": "🔐 **Level 1 Verification - Google reCAPTCHA**",
+      "level2_title": "🔐 **Level 2 Verification - SMS Verification**",
+      "level3_title": "🔐 **Level 3 Verification - Biometric Authentication**",
+      "click_link": "✅ Click the link below to start verification:",
+      "link_expires": "⏰ Verification link expires in: 15 minutes",
+      "complete_and_return": "📱 Please complete verification in the new window and return here to check status",
+      "level2_sbt_note": "🏆 Complete Level 2 to mint your SBT!",
+      "level3_max_score": "🏆 Complete Level 3 to get the highest Humanity Index!"
+    },
+    "verification_url": "🔗 *Verification Link Generated*\n\nPlease click the link below to complete Twin3.ai human identity verification:\n\n{{url}}\n\n⏰ Link expires in 30 minutes\n💡 Please return to check status after completing verification",
+    "status_pending": "⏳ *Verification in Progress*\n\n📊 *Current Status:* Waiting for verification completion\n⏰ *Start Time:* {{startTime}}\n🔗 *Verification Link:* {{linkStatus}}\n\n💡 *Tip: Please complete web verification and return to check status*",
+    "status_completed": "{{emoji}} *Verification {{status}}*\n\n🎯 *Your Humanity Index: {{score}}/255*\n📊 *Verification Status:* {{statusText}}\n📅 *Completion Time:* {{completedTime}}\n\n{{message}}",
+    "success_message": "🎉 Congratulations! You have successfully completed Twin3 human verification. Your exclusive Twin3 SBT is being prepared for you!",
+    "retry_message": "💡 You can re-verify to improve your score. We recommend completing more verification levels to increase your Humanity Index."
+  },
+  "menu": {
+    "verification": "Verification",
+    "status": "Current Status",
+    "profile": "Profile",
+    "sbt": "SBT",
+    "help": "Help",
+    "language": "Language Settings",
+    "settings": "Settings"
+  },
+  "buttons": {
+    "start_verification": "🚀 Start Verification",
+    "check_status": "📊 Check Status",
+    "refresh_status": "🔄 Refresh Status",
+    "back_to_main": "🔙 Back to Main",
+    "back_to_verification": "🔙 Back to Verification",
+    "learn_more": "ℹ️ Learn More",
+    "next": "Next",
+    "complete_level": "Complete Level {{level}}",
+    "view_sbt": "🏆 View SBT",
+    "start_verification_now": "🚀 Start Verification",
+    "check_verification_status": "🔄 Check Verification Status",
+    "level_completed": "✅ Level {{level}} Completed!",
+    "complete_previous_level": "🔒 Please complete the previous level first",
+    "check_status": "📊 Check Status"
+  },
+  "help": {
+    "title": "❓ *Twin Gate Bot Help*",
+    "commands": "*Available Commands:*\n/start - 🚀 Start your verification journey\n/verify - ✅ Begin verification process\n/status - 📊 Check verification status\n/profile - 👤 View your profile\n/sbt - 🏆 View SBT information\n/help - ❓ Show this help message",
+    "verification_levels": "*Verification Levels:*\n• Level 1 - Google reCAPTCHA\n• Level 2 - SMS Verification\n• Level 3 - Biometric Authentication",
+    "getting_started": "*Getting Started:*\n1. Use 🚀 Start Verification to begin\n2. Complete verification levels in order\n3. Mint your SBT after completing Level 2\n4. Achieve maximum Humanity Index with Level 3",
+    "support": "*Support:*\nIf you need assistance, please contact our support team or check our documentation.",
+    "privacy": "*Privacy:*\nYour data is secure and encrypted. We only store necessary verification information.",
+    "documentation": "Documentation",
+    "support_chat": "Support Chat"
+  },
+  "errors": {
+    "general": "❌ An error occurred, please try again later.",
+    "auth_required": "🔐 Authentication required. Please use /start to register.",
+    "api_error": "❌ Unable to connect to server. Please try again later.",
+    "invalid_token": "❌ Invalid verification token.",
+    "verification_expired": "⏰ Verification link has expired, please start again."
+  },
+  "success": {
+    "language_set": "✅ Language set to English",
+    "verification_started": "✅ Verification started",
+    "status_updated": "✅ Status updated"
+  }
+}

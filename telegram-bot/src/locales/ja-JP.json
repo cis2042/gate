@@ -1,0 +1,74 @@
+{
+  "welcome": {
+    "language_selection": "🌍 *Twin Gateへようこそ！*\n\nこんにちは{{firstName}}さん！続行するには言語を選択してください。",
+    "title": "🚪 *Twin Gateへようこそ！*",
+    "subtitle": "こんにちは{{firstName}}さん！私はあなたの人間認証アシスタントです。",
+    "description": "Twin GateはTwin3.aiの先進技術を使用して人間認証を行い、専用のデジタルアイデンティティ証明の取得をサポートします。",
+    "what_you_get": "✨ *取得できるもの：*\n🏆 専用Twin3 SBT (Soul Bound Token)\n📊 あなたのHumanity Indexスコア (0-255)\n🔐 分散型アイデンティティ認証",
+    "get_started": "🚀 *開始方法：*\n/verify で認証プロセスを開始\n/help で利用可能なコマンドを表示\n\n始める準備はできましたか？"
+  },
+  "verification": {
+    "task_title": "タスク #001\n\n**人間性の証明**",
+    "task_description": "私たちの一員になるためには、あなたがロボットではないことを証明する必要があります。一部のロボットは非常に洗練されており、本物の人間と区別するのが困難になっています。人間認証タスクのレベルが高いほど、あなたが本物の人間である可能性が高くなります。",
+    "task_info": "人間認証タスクは現在レベル3まで開放されており、日常生活で馴染みのある認証方法を通じてロボットではないことを証明します。このプロセスは身元またはデバイス認識にのみ使用され、個人情報は保持されません。",
+    "current_level": "現在のアイデンティティレベル",
+    "requirement": "DNA NFTの無料ミントを取得するには、少なくともレベル2を完了してください。",
+    "level1": {
+      "title": "レベル 1",
+      "description": "Google ReCAPTCHA V2をクリック\n\n(I'm not a Robot)",
+      "button": "🟢 レベル1開始"
+    },
+    "level2": {
+      "title": "レベル 2",
+      "description": "モバイルSMS認証",
+      "button": "🟡 レベル2開始"
+    },
+    "level3": {
+      "title": "レベル 3",
+      "description": "Apple IDまたはAndroid認証",
+      "button": "🔴 レベル3開始"
+    },
+    "start_verification": "🚀 認証開始",
+    "verification_url": "🔗 *認証リンクが生成されました*\n\n以下のリンクをクリックしてTwin3.ai人間認証を完了してください：\n\n{{url}}\n\n⏰ リンクは30分後に期限切れになります\n💡 認証完了後、ステータスを確認するために戻ってきてください",
+    "status_pending": "⏳ *認証進行中*\n\n📊 *現在のステータス：* 認証完了待ち\n⏰ *開始時間：* {{startTime}}\n🔗 *認証リンク：* {{linkStatus}}\n\n💡 *ヒント：ウェブ認証を完了してからステータスを確認してください*",
+    "status_completed": "{{emoji}} *認証{{status}}*\n\n🎯 *あなたのHumanity Index：{{score}}/255*\n📊 *認証ステータス：* {{statusText}}\n📅 *完了時間：* {{completedTime}}\n\n{{message}}",
+    "success_message": "🎉 おめでとうございます！Twin3人間認証が正常に完了しました。専用のTwin3 SBTを準備中です！",
+    "retry_message": "💡 スコアを向上させるために再認証できます。Humanity Indexを向上させるために、より多くの認証レベルを完了することをお勧めします。"
+  },
+  "buttons": {
+    "start_verification": "🚀 認証開始",
+    "check_status": "📊 ステータス確認",
+    "refresh_status": "🔄 ステータス更新",
+    "back_to_main": "🔙 メインに戻る",
+    "learn_more": "ℹ️ 詳細を見る",
+    "next": "次へ",
+    "complete_level": "レベル{{level}}完了",
+    "view_sbt": "🏆 SBTを見る"
+  },
+  "commands": {
+    "help": {
+      "title": "❓ *Twin Gate Bot ヘルプ*",
+      "available_commands": "*利用可能なコマンド：*",
+      "start": "/start - 🚀 認証の旅を開始",
+      "verify": "/verify - ✅ 認証プロセスを開始",
+      "status": "/status - 📊 認証ステータスを確認",
+      "profile": "/profile - 👤 プロフィールを表示",
+      "sbt": "/sbt - 🏆 SBT情報を表示",
+      "channels": "/channels - 📋 利用可能な認証チャンネルを表示",
+      "settings": "/settings - ⚙️ ボット設定",
+      "help": "/help - ❓ このヘルプメッセージを表示"
+    }
+  },
+  "errors": {
+    "general": "❌ エラーが発生しました。後でもう一度お試しください。",
+    "auth_required": "🔐 認証が必要です。/start を使用して登録してください。",
+    "api_error": "❌ サーバーに接続できません。後でもう一度お試しください。",
+    "invalid_token": "❌ 無効な認証トークンです。",
+    "verification_expired": "⏰ 認証リンクが期限切れです。もう一度開始してください。"
+  },
+  "success": {
+    "language_set": "✅ 言語が日本語に設定されました",
+    "verification_started": "✅ 認証が開始されました",
+    "status_updated": "✅ ステータスが更新されました"
+  }
+}
