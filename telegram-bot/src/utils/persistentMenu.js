@@ -18,38 +18,14 @@ function createMainMenu(language = 'zh-TW', userStatus = {}) {
   const buttons = [
     [
       Markup.button.callback(
-        `🔐 ${t('menu.verification', language)} ${getVerificationStatusText(verificationLevel, language)}`,
-        'menu_verification'
+        '🚀 開始驗證',
+        'start_verification'
       )
     ],
     [
       Markup.button.callback(
-        `📊 ${t('menu.status', language)}`,
-        'menu_status'
-      ),
-      Markup.button.callback(
-        `👤 ${t('menu.profile', language)}`,
-        'menu_profile'
-      )
-    ],
-    [
-      Markup.button.callback(
-        `🏆 ${t('menu.sbt', language)} ${sbtEligible ? '✅' : '🔒'}`,
-        sbtEligible ? 'menu_sbt' : 'sbt_locked'
-      ),
-      Markup.button.callback(
-        `❓ ${t('menu.help', language)}`,
-        'menu_help'
-      )
-    ],
-    [
-      Markup.button.callback(
-        `🌐 ${t('menu.language', language)}`,
+        '🌐 語言設定',
         'menu_language'
-      ),
-      Markup.button.callback(
-        `⚙️ ${t('menu.settings', language)}`,
-        'menu_settings'
       )
     ]
   ];
@@ -162,13 +138,7 @@ function createVerificationInProgressMenu(language, level, verificationUrl) {
     [Markup.button.url(`🌐 完成 Level ${level} 驗證`, verificationUrl)],
     [
       Markup.button.callback(
-        `🔄 ${t('buttons.check_status', language)}`,
-        `check_level_${level}_status`
-      )
-    ],
-    [
-      Markup.button.callback(
-        `🔙 ${t('buttons.back_to_verification', language)}`,
+        `🔙 返回驗證選單`,
         'back_to_verification'
       )
     ]

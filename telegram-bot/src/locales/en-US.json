@@ -59,16 +59,33 @@
     "check_status": "📊 Check Status",
     "refresh_status": "🔄 Refresh Status",
     "back_to_main": "🔙 Back to Main",
+    "main_menu": "🏠 Main Menu",
     "back_to_verification": "🔙 Back to Verification",
     "learn_more": "ℹ️ Learn More",
     "next": "Next",
     "complete_level": "Complete Level {{level}}",
+    "start_level": "Start Level",
+    "continue_verification": "🚀 Continue Verification",
+    "sbt_management": "🏆 SBT Management",
+    "mint_sbt": "🏆 Mint SBT",
     "view_sbt": "🏆 View SBT",
     "start_verification_now": "🚀 Start Verification",
     "check_verification_status": "🔄 Check Verification Status",
     "level_completed": "✅ Level {{level}} Completed!",
     "complete_previous_level": "🔒 Please complete the previous level first",
     "check_status": "📊 Check Status"
+  },
+  "welcome": {
+    "back": "Welcome back, {{name}}!"
+  },
+  "dashboard": {
+    "your_status": "Your Twin Gate Status",
+    "verification_level": "Verification Level",
+    "pass_status": "Pass Status"
+  },
+  "status": {
+    "passed": "Passed",
+    "not_passed": "Not Passed"
   },
   "help": {
     "title": "❓ *Twin Gate Bot Help*",

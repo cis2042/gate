@@ -122,22 +122,16 @@ class TwinGateBot {
   }
 
   async setBotCommands() {
-    // 設定多語言命令描述
+    // 簡化的命令列表 - 只保留核心功能
     const commandsZhTW = [
-      { command: 'start', description: '🚀 開始驗證之旅' },
-      { command: 'verify', description: '✅ 開始驗證流程' },
-      { command: 'status', description: '📊 檢查驗證狀態' },
-      { command: 'profile', description: '👤 查看個人資料' },
-      { command: 'sbt', description: '🏆 查看 SBT 資訊' },
+      { command: 'verify', description: '🚀 開始/查看驗證狀態' },
+      { command: 'sbt', description: '🏆 查看 SBT 和個人資料' },
       { command: 'help', description: '❓ 獲取幫助和支援' }
     ];
 
     const commandsEn = [
-      { command: 'start', description: '🚀 Start verification journey' },
-      { command: 'verify', description: '✅ Begin verification process' },
-      { command: 'status', description: '📊 Check verification status' },
-      { command: 'profile', description: '👤 View your profile' },
-      { command: 'sbt', description: '🏆 View SBT information' },
+      { command: 'verify', description: '🚀 Start/Check verification status' },
+      { command: 'sbt', description: '🏆 View SBT and profile' },
       { command: 'help', description: '❓ Get help and support' }
     ];
 
@@ -148,6 +142,18 @@ class TwinGateBot {
     await this.bot.telegram.setMyCommands(commandsEn, {
       language_code: 'en'
     });
+
+    // 設置 Bot 選單按鈕 - 移除 "Tap here to use this bot"
+    try {
+      await this.bot.telegram.setChatMenuButton({
+        menu_button: {
+          type: 'commands'
+        }
+      });
+      logger.info('Bot menu button set to commands');
+    } catch (error) {
+      logger.warn('Failed to set menu button:', error.message);
+    }
 
     logger.info('Bot commands set successfully');
   }

@@ -59,16 +59,33 @@
     "check_status": "📊 檢查狀態",
     "refresh_status": "🔄 重新整理狀態",
     "back_to_main": "🔙 返回主選單",
+    "main_menu": "🏠 主選單",
     "back_to_verification": "🔙 返回驗證選單",
     "learn_more": "ℹ️ 了解更多",
     "next": "下一步",
     "complete_level": "完成等級 {{level}}",
+    "start_level": "開始 Level",
+    "continue_verification": "🚀 繼續驗證",
+    "sbt_management": "🏆 SBT 管理",
+    "mint_sbt": "🏆 鑄造 SBT",
     "view_sbt": "🏆 查看 SBT",
     "start_verification_now": "🚀 開始驗證",
     "check_verification_status": "🔄 檢查驗證狀態",
     "level_completed": "✅ Level {{level}} 已完成！",
     "complete_previous_level": "🔒 請先完成前一等級的驗證",
     "check_status": "📊 檢查狀態"
+  },
+  "welcome": {
+    "back": "歡迎回來，{{name}}！"
+  },
+  "dashboard": {
+    "your_status": "您的 Twin Gate 狀態",
+    "verification_level": "驗證等級",
+    "pass_status": "通過狀態"
+  },
+  "status": {
+    "passed": "已通過",
+    "not_passed": "未達標"
   },
   "help": {
     "title": "❓ *Twin Gate Bot 說明*",

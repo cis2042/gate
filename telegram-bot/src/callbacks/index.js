@@ -30,6 +30,9 @@ const {
   createProfileKeyboard,
   createSettingsKeyboard
 } = require('../utils/keyboards');
+const groupService = require('../services/groupService');
+const verificationFlowService = require('../services/verificationFlowService');
+const sbtService = require('../services/sbtService');
 
 // Helper functions from commands
 async function showMainWelcome(ctx, language, firstName) {
@@ -45,10 +48,8 @@ async function showMainWelcome(ctx, language, firstName) {
     t('welcome.get_started', language);
 
   await ctx.replyWithMarkdown(welcomeMessage, Markup.inlineKeyboard([
-    [Markup.button.callback(t('buttons.start_verification', language), 'start_verification')],
-    [Markup.button.callback(t('buttons.check_status', language), 'check_status')],
-    [Markup.button.callback(t('buttons.learn_more', language), 'learn_more')],
-    [Markup.button.callback('🌐 ' + t('menu.language', language), 'menu_language')]
+    [Markup.button.callback('🚀 開始驗證', 'start_verification')],
+    [Markup.button.callback('🌐 語言設定', 'menu_language')]
   ]));
 }
 
@@ -136,47 +137,193 @@ async function showVerificationTask(ctx, language) {
 }
 
 function setupCallbacks(bot) {
-  // 主選單回調處理器
-  bot.action('menu_verification', async (ctx) => {
+  // 統一流程回調處理器
+
+  // 流程語言選擇
+  bot.action(/^flow_lang_(.+)$/, async (ctx) => {
     try {
       const userId = ctx.from.id;
-      const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
+      const languageCode = ctx.match[1];
+
+      logger.userAction(userId, 'flow_language_selection', { language: languageCode });
 
       await ctx.answerCbQuery();
 
-      // 使用統一的驗證任務顯示函數
-      await showVerificationTask(ctx, language);
+      // 更新用戶會話
+      await updateUserSession(userId, { language: languageCode });
+
+      // 顯示成功訊息並進入主流程
+      await ctx.editMessageText(
+        `✅ 語言設定完成！\n\n歡迎使用 Twin Gate 人類身份驗證系統！`,
+        { parse_mode: 'Markdown' }
+      );
+
+      // 延遲一秒後顯示主儀表板
+      setTimeout(async () => {
+        await verificationFlowService.handleUnifiedFlow(ctx, 'start');
+      }, 1000);
 
     } catch (error) {
+      logger.error('Error in flow language selection:', error);
+      await ctx.answerCbQuery('❌ 語言設定失敗');
+    }
+  });
+
+  // 流程主選單
+  bot.action('flow_main', async (ctx) => {
+    try {
+      await ctx.answerCbQuery();
+      await verificationFlowService.handleUnifiedFlow(ctx, 'start');
+    } catch (error) {
+      logger.error('Error in flow_main callback:', error);
+      await ctx.answerCbQuery('❌ 載入主選單失敗');
+    }
+  });
+
+  // 流程驗證
+  bot.action('flow_verify', async (ctx) => {
+    try {
+      await ctx.answerCbQuery();
+      await verificationFlowService.handleUnifiedFlow(ctx, 'verify');
+    } catch (error) {
+      logger.error('Error in flow_verify callback:', error);
+      await ctx.answerCbQuery('❌ 載入驗證流程失敗');
+    }
+  });
+
+  // 流程儀表板
+  bot.action('flow_dashboard', async (ctx) => {
+    try {
+      await ctx.answerCbQuery();
+      await verificationFlowService.handleUnifiedFlow(ctx, 'status');
+    } catch (error) {
+      logger.error('Error in flow_dashboard callback:', error);
+      await ctx.answerCbQuery('❌ 載入儀表板失敗');
+    }
+  });
+
+  // 流程重試
+  bot.action('flow_retry', async (ctx) => {
+    try {
+      await ctx.answerCbQuery('🔄 正在重試...');
+
+      // 獲取用戶最後的命令
+      const session = await getUserSession(ctx.from.id);
+      const lastCommand = session?.lastCommand || 'start';
+
+      await verificationFlowService.handleUnifiedFlow(ctx, lastCommand);
+    } catch (error) {
+      logger.error('Error in flow_retry callback:', error);
+      await ctx.answerCbQuery('❌ 重試失敗');
+    }
+  });
+
+  // 開始驗證 (英文)
+  bot.action('start_verification_en', async (ctx) => {
+    try {
+      const userId = ctx.from.id;
+      await ctx.answerCbQuery();
+
+      // 設置默認語言為英文
+      await updateUserSession(userId, { language: 'en-US' });
+
+      // 顯示成功訊息
+      await ctx.editMessageText(
+        `✅ **Language set to English!**\n\nWelcome to Twin Gate Human Identity Verification System!`,
+        { parse_mode: 'Markdown' }
+      );
+
+      // 延遲一秒後進入驗證流程
+      setTimeout(async () => {
+        await verificationFlowService.handleUnifiedFlow(ctx, 'verify');
+      }, 1000);
+
+    } catch (error) {
+      logger.error('Error in start_verification_en callback:', error);
+      await ctx.answerCbQuery('❌ Failed to start verification');
+    }
+  });
+
+  // 語言設定
+  bot.action('language_settings', async (ctx) => {
+    try {
+      await ctx.answerCbQuery();
+
+      const { getSupportedLanguages } = require('../locales');
+      const supportedLanguages = getSupportedLanguages();
+
+      const message = `🌍 **Language Settings**\n\n` +
+        `Please select your preferred language:\n` +
+        `請選擇您的語言：`;
+
+      const languageButtons = [];
+      for (let i = 0; i < supportedLanguages.length; i += 2) {
+        const row = [];
+        const lang1 = supportedLanguages[i];
+        const lang2 = supportedLanguages[i + 1];
+
+        row.push(Markup.button.callback(lang1.name, `flow_lang_${lang1.code}`));
+        if (lang2) {
+          row.push(Markup.button.callback(lang2.name, `flow_lang_${lang2.code}`));
+        }
+        languageButtons.push(row);
+      }
+
+      // 添加返回按鈕
+      languageButtons.push([Markup.button.callback('🔙 Back', 'back_to_welcome')]);
+
+      await ctx.editMessageText(message, {
+        parse_mode: 'Markdown',
+        reply_markup: Markup.inlineKeyboard(languageButtons)
+      });
+
+    } catch (error) {
+      logger.error('Error in language_settings callback:', error);
+      await ctx.answerCbQuery('❌ Failed to load language settings');
+    }
+  });
+
+  // 返回歡迎頁面
+  bot.action('back_to_welcome', async (ctx) => {
+    try {
+      await ctx.answerCbQuery();
+      await verificationFlowService.handleUnifiedFlow(ctx, 'start');
+    } catch (error) {
+      logger.error('Error in back_to_welcome callback:', error);
+      await ctx.answerCbQuery('❌ Failed to go back');
+    }
+  });
+
+  // 重定向到 verify
+  bot.action('redirect_to_verify', async (ctx) => {
+    try {
+      await ctx.answerCbQuery();
+      await verificationFlowService.handleUnifiedFlow(ctx, 'verify');
+    } catch (error) {
+      logger.error('Error in redirect_to_verify callback:', error);
+      await ctx.answerCbQuery('❌ 重定向失敗');
+    }
+  });
+
+  // 主選單回調處理器
+  bot.action('menu_verification', async (ctx) => {
+    try {
+      await ctx.answerCbQuery();
+      await verificationFlowService.handleUnifiedFlow(ctx, 'verify');
+    } catch (error) {
       logger.error('Error in menu_verification callback:', error);
-      await ctx.answerCbQuery(t('errors.general', session?.language || 'zh-TW'));
+      await ctx.answerCbQuery('❌ 載入驗證選單失敗');
     }
   });
 
   // 返回主選單
   bot.action('back_to_main', async (ctx) => {
     try {
-      const userId = ctx.from.id;
-      const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
-      const userStatus = await getUserVerificationStatus(userId);
-
       await ctx.answerCbQuery();
-
-      const welcomeMessage = t('welcome.title', language) + '\n\n' +
-        `🎯 ${t('menu.status', language)}: Level ${userStatus.verificationLevel}/3\n` +
-        `📊 Humanity Index: ${userStatus.humanityIndex}/255\n\n` +
-        t('welcome.get_started', language);
-
-      await ctx.editMessageText(welcomeMessage, {
-        parse_mode: 'Markdown',
-        reply_markup: createMainMenu(language, userStatus)
-      });
-
+      await verificationFlowService.handleUnifiedFlow(ctx, 'start');
     } catch (error) {
       logger.error('Error in back_to_main callback:', error);
-      await ctx.answerCbQuery(t('errors.general', session?.language || 'zh-TW'));
+      await ctx.answerCbQuery('❌ 返回主選單失敗');
     }
   });
 
@@ -427,9 +574,8 @@ function setupCallbacks(bot) {
           await ctx.editMessageText(verificationMessage, {
             parse_mode: 'Markdown',
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.url(t('buttons.start_verification_now', language), response.data.verificationUrl)],
-              [Markup.button.callback(t('buttons.check_verification_status', language), 'check_level_1_status')],
-              [Markup.button.callback(t('buttons.back_to_verification', language), 'back_to_verification')]
+              [Markup.button.url('🚀 開始驗證', response.data.verificationUrl)],
+              [Markup.button.callback('🔙 返回驗證選單', 'back_to_verification')]
             ])
           });
 
@@ -490,9 +636,8 @@ function setupCallbacks(bot) {
           await ctx.editMessageText(verificationMessage, {
             parse_mode: 'Markdown',
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.url(t('buttons.start_verification_now', language), response.data.verificationUrl)],
-              [Markup.button.callback(t('buttons.check_verification_status', language), 'check_level_2_status')],
-              [Markup.button.callback(t('buttons.back_to_verification', language), 'back_to_verification')]
+              [Markup.button.url('🚀 開始驗證', response.data.verificationUrl)],
+              [Markup.button.callback('🔙 返回驗證選單', 'back_to_verification')]
             ])
           });
 
@@ -554,7 +699,6 @@ function setupCallbacks(bot) {
             parse_mode: 'Markdown',
             reply_markup: Markup.inlineKeyboard([
               [Markup.button.url('🚀 開始驗證', response.data.verificationUrl)],
-              [Markup.button.callback('🔄 檢查驗證狀態', 'check_level_3_status')],
               [Markup.button.callback('🔙 返回驗證選單', 'back_to_verification')]
             ])
           });
@@ -640,8 +784,7 @@ function setupCallbacks(bot) {
         } else if (sbtDetails.eligibleForMint) {
           // 可以鑄造 SBT
           buttons.push([
-            Markup.button.callback('🎯 立即鑄造 SBT', 'mint_sbt'),
-            Markup.button.callback('🔄 檢查狀態', 'check_mint_status')
+            Markup.button.callback('🎯 立即鑄造 SBT', 'mint_sbt')
           ]);
         } else {
           // 尚未符合條件
@@ -707,7 +850,6 @@ function setupCallbacks(bot) {
           await ctx.editMessageText(mintMessage, {
             parse_mode: 'Markdown',
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback('🔄 檢查鑄造狀態', 'check_mint_status')],
               [Markup.button.callback('🔙 返回 SBT 選單', 'menu_sbt')]
             ])
           });
@@ -763,7 +905,6 @@ function setupCallbacks(bot) {
               `💡 Twin3.ai 正在區塊鏈上為您鑄造專屬的 SBT...`;
 
             buttons = [
-              [Markup.button.callback('🔄 重新檢查', 'check_mint_status')],
               [Markup.button.callback('🔙 返回 SBT 選單', 'menu_sbt')]
             ];
             break;
@@ -799,7 +940,6 @@ function setupCallbacks(bot) {
               `🔧 無法確定鑄造狀態，請聯繫客服。`;
 
             buttons = [
-              [Markup.button.callback('🔄 重新檢查', 'check_mint_status')],
               [Markup.button.callback('🔙 返回 SBT 選單', 'menu_sbt')]
             ];
         }
@@ -815,7 +955,6 @@ function setupCallbacks(bot) {
           '❌ 無法檢查鑄造狀態，請稍後再試。',
           {
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback('🔄 重試', 'check_mint_status')],
               [Markup.button.callback('🔙 返回 SBT 選單', 'menu_sbt')]
             ])
           }
@@ -886,59 +1025,60 @@ Welcome back! Choose what you'd like to do:
     }
   });
 
-  // Check status callback
+  // Check status callback - 重定向到 verify
   bot.action('check_status', async (ctx) => {
     try {
-      await ctx.answerCbQuery();
-
-      const userId = ctx.from.id;
-      const session = await getUserSession(userId);
-
-      if (!session?.token) {
-        await ctx.editMessageText(
-          '🔐 You need to register first.',
-          {
-            ...Markup.inlineKeyboard([
-              [Markup.button.callback('📝 Register', 'register')],
-              [Markup.button.callback('🔙 Back', 'main_menu')]
-            ])
-          }
-        );
-        return;
-      }
-
-      try {
-        const statusResponse = await apiClient.getVerificationStatus(session.token);
-
-        if (statusResponse.success) {
-          const message = formatVerificationStatus(statusResponse.data);
-          await ctx.editMessageText(message, {
-            parse_mode: 'Markdown',
-            ...Markup.inlineKeyboard([
-              [Markup.button.callback('🔄 Refresh', 'check_status')],
-              [Markup.button.callback('✅ Continue Verification', 'start_verification')],
-              [Markup.button.callback('🔙 Back', 'main_menu')]
-            ])
-          });
-        } else {
-          throw new Error('Failed to get verification status');
-        }
-      } catch (error) {
-        logger.error('Error getting verification status:', error);
-        await ctx.editMessageText(
-          '❌ Unable to load verification status.',
-          {
-            ...Markup.inlineKeyboard([
-              [Markup.button.callback('🔄 Retry', 'check_status')],
-              [Markup.button.callback('🔙 Back', 'main_menu')]
-            ])
-          }
-        );
-      }
-
+      await ctx.answerCbQuery('🔄 重定向到驗證功能...');
+      await verificationFlowService.handleUnifiedFlow(ctx, 'verify');
     } catch (error) {
-      logger.error('Error in check_status callback:', error);
-      await ctx.answerCbQuery('❌ Error checking status');
+      logger.error('Error in check_status redirect:', error);
+      await ctx.answerCbQuery('❌ 重定向失敗');
+    }
+  });
+
+  // Learn more callback - 重定向到 help
+  bot.action('learn_more', async (ctx) => {
+    try {
+      await ctx.answerCbQuery('ℹ️ 查看幫助信息...');
+
+      const helpMessage = `❓ **Twin Gate Bot 說明**\n\n` +
+        `🤖 **關於 Twin3.ai 人類驗證**\n` +
+        `Twin3.ai 是領先的去中心化人類身份驗證平台，透過多層級驗證技術幫助用戶證明自己的人類身份，並獲得獨特的 Humanity Index 分數。\n\n` +
+        `🔐 **Twin Gate** 是基於 Twin3.ai 技術的 Telegram 驗證機器人，提供：\n` +
+        `• 三級漸進式人類身份驗證\n` +
+        `• 0-255 分的 Humanity Index 評分系統\n` +
+        `• 專屬的 SBT (Soul Bound Token) 鑄造\n` +
+        `• 完整的隱私保護和數據安全\n\n` +
+        `**可用指令：**\n` +
+        `/verify - 🚀 開始/查看驗證狀態\n` +
+        `/sbt - 🏆 查看 SBT 和個人資料\n` +
+        `/help - ❓ 顯示此說明訊息\n\n` +
+        `**驗證等級：**\n` +
+        `• Level 1 - Google reCAPTCHA\n` +
+        `• Level 2 - SMS 驗證\n` +
+        `• Level 3 - 生物識別驗證\n\n` +
+        `**開始使用：**\n` +
+        `1. 使用 🚀 /verify 開始驗證\n` +
+        `2. 依序完成驗證等級\n` +
+        `3. 完成 Level 2 後可鑄造 SBT\n` +
+        `4. 完成 Level 3 達到最高 Humanity Index\n\n` +
+        `**支援：**\n` +
+        `如需協助，請聯繫我們的支援團隊或查看官方文檔。\n\n` +
+        `**隱私：**\n` +
+        `您的數據經過加密保護，我們只儲存必要的驗證資訊。`;
+
+      await ctx.editMessageText(helpMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: Markup.inlineKeyboard([
+          [Markup.button.url('🌐 Twin3.ai 官網', 'https://twin3.ai')],
+          [Markup.button.url('📚 技術文檔', 'https://docs.twin3.ai')],
+          [Markup.button.url('💬 支援群組', 'https://t.me/twin3support')],
+          [Markup.button.callback('🚀 開始驗證', 'redirect_to_verify')]
+        ])
+      });
+    } catch (error) {
+      logger.error('Error in learn_more redirect:', error);
+      await ctx.answerCbQuery('❌ 載入幫助信息失敗');
     }
   });
 
@@ -1167,7 +1307,6 @@ Let's start with your email address.
           await ctx.editMessageText(message, {
             parse_mode: 'Markdown',
             ...Markup.inlineKeyboard([
-              [Markup.button.callback('🔄 重新整理', 'check_verification_status')],
               [Markup.button.callback('🔙 返回主選單', 'back_to_main')]
             ])
           });
@@ -1217,6 +1356,295 @@ Contact our support team for assistance.
     } catch (error) {
       logger.error('Error in show_help callback:', error);
       await ctx.answerCbQuery('❌ Error loading help');
+    }
+  });
+
+  // 群組相關回調處理
+
+  // 群組了解更多
+  bot.action('learn_more_group', async (ctx) => {
+    try {
+      const userId = ctx.from.id;
+      const session = await getUserSession(userId);
+      const language = session?.language || 'zh-TW';
+
+      await ctx.answerCbQuery();
+
+      const groupInfoMessage = `🔐 **Twin Gate 群組驗證系統**\n\n` +
+        `✅ **功能特色**:\n` +
+        `• 自動追蹤用戶來源\n` +
+        `• 群組驗證統計\n` +
+        `• 管理員控制面板\n` +
+        `• 私人驗證流程\n\n` +
+        `📊 **管理員命令**:\n` +
+        `• \`/registergroup\` - 註冊群組\n` +
+        `• \`/groupstats\` - 查看統計\n\n` +
+        `🔒 **隱私保護**:\n` +
+        `• 驗證過程完全私人\n` +
+        `• 只追蹤來源群組\n` +
+        `• 不存儲敏感信息\n\n` +
+        `💡 **使用方式**:\n` +
+        `1. 管理員註冊群組\n` +
+        `2. 成員點擊驗證按鈕\n` +
+        `3. 私訊完成驗證\n` +
+        `4. 系統自動追蹤來源`;
+
+      await ctx.editMessageText(groupInfoMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: Markup.inlineKeyboard([
+          [Markup.button.url('📚 詳細文檔', 'https://docs.twingate.com/group-guide')],
+          [Markup.button.url('💬 技術支援', 'https://t.me/twingate_support')]
+        ])
+      });
+
+    } catch (error) {
+      logger.error('Error in learn_more_group callback:', error);
+      await ctx.answerCbQuery('❌ 無法載入群組信息');
+    }
+  });
+
+  // 查看群組統計
+  bot.action('view_group_stats', async (ctx) => {
+    try {
+      const chatId = ctx.chat.id;
+      const userId = ctx.from.id;
+
+      await ctx.answerCbQuery();
+
+      const statsResult = groupService.getGroupStats(chatId.toString());
+
+      if (statsResult.success) {
+        const stats = statsResult.data;
+        const message = `📊 **群組驗證統計**\n\n` +
+          `🏷️ **群組**: ${stats.title}\n` +
+          `✅ **驗證次數**: ${stats.verificationCount}\n` +
+          `👥 **成員數**: ${stats.memberCount}\n` +
+          `📅 **註冊時間**: ${new Date(stats.registeredAt).toLocaleDateString('zh-TW')}\n` +
+          `🔄 **狀態**: ${stats.isActive ? '✅ 啟用' : '❌ 停用'}`;
+
+        await ctx.editMessageText(message, {
+          parse_mode: 'Markdown',
+          reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('🔄 重新整理', 'refresh_group_stats')],
+            [Markup.button.callback('📊 詳細報告', 'detailed_group_report')]
+          ])
+        });
+      } else {
+        await ctx.answerCbQuery('❌ 無法獲取群組統計');
+      }
+
+    } catch (error) {
+      logger.error('Error in view_group_stats callback:', error);
+      await ctx.answerCbQuery('❌ 查看統計時發生錯誤');
+    }
+  });
+
+  // SBT 相關回調處理器
+
+  // 重定向到 SBT
+  bot.action('redirect_to_sbt', async (ctx) => {
+    try {
+      const userId = ctx.from.id;
+      await ctx.answerCbQuery();
+
+      const session = await getUserSession(userId);
+      const language = session?.language || 'zh-TW';
+
+      const profileResult = await sbtService.getUserProfileAndSBT(userId);
+
+      if (profileResult.success) {
+        const profileData = profileResult.data;
+        const message = sbtService.formatCompleteProfile(profileData, language);
+        const buttonData = sbtService.generateSBTButtons(profileData, language);
+
+        const keyboard = buttonData.map(row =>
+          row.map(btn =>
+            btn.url ?
+              Markup.button.url(btn.text, btn.url) :
+              Markup.button.callback(btn.text, btn.callback_data)
+          )
+        );
+
+        await ctx.editMessageText(message, {
+          parse_mode: 'Markdown',
+          reply_markup: Markup.inlineKeyboard(keyboard)
+        });
+      } else {
+        await ctx.editMessageText(
+          '❌ 無法載入 SBT 信息，請稍後再試。',
+          Markup.inlineKeyboard([
+            [Markup.button.callback('🔄 重試', 'retry_sbt_load')],
+            [Markup.button.callback('🏠 主選單', 'flow_main')]
+          ])
+        );
+      }
+    } catch (error) {
+      logger.error('Error in redirect_to_sbt callback:', error);
+      await ctx.answerCbQuery('❌ 載入 SBT 信息失敗');
+    }
+  });
+
+  // 重試載入 SBT
+  bot.action('retry_sbt_load', async (ctx) => {
+    try {
+      await ctx.answerCbQuery('🔄 正在重新載入...');
+
+      const userId = ctx.from.id;
+      const session = await getUserSession(userId);
+      const language = session?.language || 'zh-TW';
+
+      const profileResult = await sbtService.getUserProfileAndSBT(userId);
+
+      if (profileResult.success) {
+        const profileData = profileResult.data;
+        const message = sbtService.formatCompleteProfile(profileData, language);
+        const buttonData = sbtService.generateSBTButtons(profileData, language);
+
+        const keyboard = buttonData.map(row =>
+          row.map(btn =>
+            btn.url ?
+              Markup.button.url(btn.text, btn.url) :
+              Markup.button.callback(btn.text, btn.callback_data)
+          )
+        );
+
+        await ctx.editMessageText(message, {
+          parse_mode: 'Markdown',
+          reply_markup: Markup.inlineKeyboard(keyboard)
+        });
+      } else {
+        throw new Error('Failed to load SBT data');
+      }
+    } catch (error) {
+      logger.error('Error in retry_sbt_load callback:', error);
+      await ctx.answerCbQuery('❌ 重新載入失敗');
+    }
+  });
+
+  // SBT 詳情
+  bot.action('sbt_details', async (ctx) => {
+    try {
+      const userId = ctx.from.id;
+      await ctx.answerCbQuery();
+
+      const sbtDetails = await sbtService.getSBTDetails(userId);
+
+      if (sbtDetails.hasSBT) {
+        const detailMessage = `💎 **SBT 詳細資訊**\n\n` +
+          `🆔 **Token ID**: ${sbtDetails.tokenId}\n` +
+          `📅 **鑄造時間**: ${new Date(sbtDetails.mintedAt).toLocaleDateString('zh-TW')}\n` +
+          `🎯 **Humanity Index**: ${sbtDetails.humanityIndex}/255\n` +
+          `📊 **驗證等級**: Level ${sbtDetails.verificationLevel}/3\n\n` +
+          `🔗 **區塊鏈資訊**:\n` +
+          `💎 SBT 地址: \`${sbtDetails.sbtAddress}\`\n` +
+          `💰 錢包地址: \`${sbtDetails.walletAddress}\`\n\n` +
+          `📋 **屬性**:\n` +
+          `${sbtDetails.attributes?.map(attr =>
+            `• ${attr.trait_type}: ${attr.value}`
+          ).join('\n') || '無特殊屬性'}\n\n` +
+          `🎉 這是您在區塊鏈上的永久身份證明！`;
+
+        await ctx.editMessageText(detailMessage, {
+          parse_mode: 'Markdown',
+          reply_markup: Markup.inlineKeyboard([
+            [
+              Markup.button.url('🔍 BNB Scan', sbtService.generateBlockchainExplorerUrl(sbtDetails.walletAddress, 'address', 'bsc')),
+              Markup.button.url('👤 Twin3 頁面', sbtService.generateTwin3ProfileUrl(userId, ctx.from.username))
+            ],
+            [Markup.button.callback('🔙 返回 SBT', 'redirect_to_sbt')]
+          ])
+        });
+      } else {
+        await ctx.answerCbQuery('❌ 您尚未擁有 SBT');
+      }
+    } catch (error) {
+      logger.error('Error in sbt_details callback:', error);
+      await ctx.answerCbQuery('❌ 無法載入 SBT 詳情');
+    }
+  });
+
+  // 鑄造 SBT
+  bot.action('mint_sbt', async (ctx) => {
+    try {
+      const userId = ctx.from.id;
+      await ctx.answerCbQuery('🏆 正在準備 SBT 鑄造...');
+
+      const mintResult = await sbtService.requestSBTMint(userId);
+
+      if (mintResult.success) {
+        const mintData = mintResult.data;
+        const message = `🎉 **SBT 鑄造請求已提交！**\n\n` +
+          `✅ 請求 ID: ${mintData.mintRequestId}\n` +
+          `💰 錢包地址: \`${mintData.walletAddress}\`\n` +
+          `⏱️ 預計完成時間: ${mintData.estimatedMintTime}\n\n` +
+          `🔄 Twin3.ai 正在為您生成專屬錢包並鑄造 SBT...\n\n` +
+          `💡 鑄造完成後，您將收到通知。`;
+
+        await ctx.editMessageText(message, {
+          parse_mode: 'Markdown',
+          reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('🔙 返回 SBT', 'redirect_to_sbt')]
+          ])
+        });
+      } else {
+        throw new Error('Failed to request SBT mint');
+      }
+    } catch (error) {
+      logger.error('Error in mint_sbt callback:', error);
+
+      let errorMessage = '❌ SBT 鑄造請求失敗。\n\n';
+      if (error.message.includes('not eligible')) {
+        errorMessage += '您需要完成 Level 2 驗證才能鑄造 SBT。';
+      } else if (error.message.includes('already has')) {
+        errorMessage += '您已經擁有 SBT 了！';
+      } else {
+        errorMessage += '請稍後再試或聯繫技術支援。';
+      }
+
+      await ctx.editMessageText(errorMessage, {
+        reply_markup: Markup.inlineKeyboard([
+          [Markup.button.callback('🚀 繼續驗證', 'flow_verify')],
+          [Markup.button.callback('🔙 返回 SBT', 'redirect_to_sbt')]
+        ])
+      });
+    }
+  });
+
+  // 了解 SBT
+  bot.action('learn_about_sbt', async (ctx) => {
+    try {
+      await ctx.answerCbQuery();
+
+      const sbtInfoMessage = `🏆 **什麼是 Twin3 SBT？**\n\n` +
+        `💎 **Soul Bound Token (靈魂綁定代幣)**\n` +
+        `SBT 是一種不可轉移的 NFT，代表您的數位身份證明。\n\n` +
+        `✨ **Twin3 SBT 特色**:\n` +
+        `• 🔒 永久綁定您的身份\n` +
+        `• 🌐 區塊鏈上的身份證明\n` +
+        `• 🎯 記錄您的 Humanity Index\n` +
+        `• 🏅 展示您的驗證等級\n\n` +
+        `📋 **獲得條件**:\n` +
+        `• ✅ 完成 Level 1 驗證\n` +
+        `• ✅ 完成 Level 2 驗證 ← 必需\n` +
+        `• ⭐ 可選：完成 Level 3 驗證\n\n` +
+        `🔗 **技術規格**:\n` +
+        `• 網絡：BNB Smart Chain\n` +
+        `• 標準：ERC-721 (不可轉移)\n` +
+        `• 存儲：IPFS + Arweave\n\n` +
+        `💡 完成 Level 2 驗證後，Twin3.ai 將自動為您生成錢包並鑄造專屬 SBT！`;
+
+      await ctx.editMessageText(sbtInfoMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: Markup.inlineKeyboard([
+          [Markup.button.callback('🚀 開始驗證', 'flow_verify')],
+          [Markup.button.url('📚 了解更多', 'https://docs.twin3.ai/sbt')],
+          [Markup.button.callback('🔙 返回 SBT', 'redirect_to_sbt')]
+        ])
+      });
+
+    } catch (error) {
+      logger.error('Error in learn_about_sbt callback:', error);
+      await ctx.answerCbQuery('❌ 無法載入 SBT 說明');
     }
   });
 }

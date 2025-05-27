@@ -12,7 +12,7 @@ function setupMiddlewares(bot) {
     const userId = ctx.from?.id;
     const chatId = ctx.chat?.id;
     const messageType = ctx.updateType;
-    
+
     logger.userAction(userId, 'bot_interaction', {
       messageType,
       chatId,
@@ -106,12 +106,12 @@ function setupMiddlewares(bot) {
     // Skip authentication for public commands
     const publicCommands = ['/start', '/help'];
     const publicCallbacks = ['main_menu', 'show_help', 'register'];
-    
-    const isPublicCommand = publicCommands.some(cmd => 
+
+    const isPublicCommand = publicCommands.some(cmd =>
       ctx.message?.text?.startsWith(cmd)
     );
-    
-    const isPublicCallback = publicCallbacks.some(cb => 
+
+    const isPublicCallback = publicCallbacks.some(cb =>
       ctx.callbackQuery?.data?.startsWith(cb)
     );
 
@@ -166,9 +166,49 @@ function setupMiddlewares(bot) {
   bot.use(async (ctx, next) => {
     const userId = ctx.from?.id;
     const adminIds = process.env.ADMIN_USER_IDS?.split(',').map(id => parseInt(id)) || [];
-    
+
     ctx.isAdmin = adminIds.includes(userId);
-    
+
+    return next();
+  });
+
+  // Source tracking middleware (群組和來源追蹤)
+  bot.use(async (ctx, next) => {
+    const userId = ctx.from?.id;
+    const chatId = ctx.chat?.id;
+    const chatType = ctx.chat?.type;
+
+    if (userId && chatId) {
+      // 追蹤用戶來源
+      const sourceInfo = {
+        chatId: chatId.toString(),
+        chatType,
+        chatTitle: ctx.chat?.title,
+        chatUsername: ctx.chat?.username,
+        timestamp: Date.now()
+      };
+
+      // 如果是群組或頻道，記錄來源
+      if (chatType === 'group' || chatType === 'supergroup' || chatType === 'channel') {
+        await updateUserSession(userId, {
+          sourceGroup: sourceInfo,
+          lastGroupInteraction: Date.now()
+        });
+
+        logger.userAction(userId, 'group_interaction', {
+          ...sourceInfo,
+          username: ctx.from?.username,
+          firstName: ctx.from?.first_name
+        });
+      }
+
+      // 設置上下文中的來源信息
+      ctx.sourceInfo = sourceInfo;
+      ctx.isGroupChat = ['group', 'supergroup'].includes(chatType);
+      ctx.isChannelPost = chatType === 'channel';
+      ctx.isPrivateChat = chatType === 'private';
+    }
+
     return next();
   });
 
@@ -176,7 +216,7 @@ function setupMiddlewares(bot) {
   bot.use(async (ctx, next) => {
     const userId = ctx.from?.id;
     const messageType = ctx.updateType;
-    
+
     // Track user activity
     if (userId) {
       await updateUserSession(userId, {
@@ -191,6 +231,8 @@ function setupMiddlewares(bot) {
         userId,
         messageType,
         chatType: ctx.chat?.type,
+        chatId: ctx.chat?.id,
+        sourceInfo: ctx.sourceInfo,
         timestamp: Date.now()
       });
     }
@@ -202,10 +244,10 @@ function setupMiddlewares(bot) {
   bot.use(async (ctx, next) => {
     const session = ctx.session;
     const defaultLang = process.env.DEFAULT_LANGUAGE || 'en';
-    
+
     // Set user language from session or default
     ctx.userLanguage = session?.language || ctx.from?.language_code || defaultLang;
-    
+
     return next();
   });
 
@@ -213,7 +255,7 @@ function setupMiddlewares(bot) {
   bot.use(async (ctx, next) => {
     const userId = ctx.from?.id;
     const messageText = ctx.message?.text;
-    
+
     // Check for suspicious patterns
     if (messageText) {
       // Check for potential spam
@@ -246,7 +288,7 @@ function setupMiddlewares(bot) {
     if (ctx.message?.text?.startsWith('/')) {
       const command = ctx.message.text.split(' ')[0];
       const validCommands = [
-        '/start', '/help', '/verify', '/status', 
+        '/start', '/help', '/verify', '/status',
         '/profile', '/sbt', '/channels', '/settings'
       ];
 
@@ -275,7 +317,7 @@ function setupMiddlewares(bot) {
 setInterval(() => {
   const now = Date.now();
   const windowMs = parseInt(process.env.RATE_LIMIT_WINDOW) || 60000;
-  
+
   for (const [key, requests] of rateLimiter.entries()) {
     const validRequests = requests.filter(time => now - time < windowMs);
     if (validRequests.length === 0) {

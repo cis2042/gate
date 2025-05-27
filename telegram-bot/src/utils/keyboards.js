@@ -1,20 +1,14 @@
 const { Markup } = require('telegraf');
 const { t } = require('../locales');
 
-// 創建主選單鍵盤
+// 創建主選單鍵盤 - 簡化版本
 function createMainKeyboard(language = 'zh-TW') {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback(t('buttons.start_verification', language), 'start_verification'),
-      Markup.button.callback(t('buttons.check_status', language), 'check_status')
+      Markup.button.callback('🚀 開始驗證', 'start_verification')
     ],
     [
-      Markup.button.callback(t('menu.profile', language), 'view_profile'),
-      Markup.button.callback(t('menu.sbt', language), 'view_sbt')
-    ],
-    [
-      Markup.button.callback(t('buttons.learn_more', language), 'learn_more'),
-      Markup.button.callback(t('menu.help', language), 'show_help')
+      Markup.button.callback('🌐 語言設定', 'menu_language')
     ]
   ]);
 }
