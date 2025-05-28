@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/cis2042/gate)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node.js-18+-green.svg)](https://nodejs.org/)
-[![Telegram Bot](https://img.shields.io/badge/telegram-bot-blue.svg)](https://t.me/twin3bot)
+[![Telegram Bot](https://img.shields.io/badge/telegram-bot-blue.svg)](#)
 
 ## 🌟 項目概述
 

@@ -147,7 +147,7 @@ class VerificationFlowService {
     await ctx.reply(message, {
       parse_mode: 'Markdown',
       reply_markup: Markup.inlineKeyboard([
-        [Markup.button.url('🚀 Start Verification', `https://t.me/twin3bot?start=verify_${chatId}`)]
+        [Markup.button.url('🚀 Start Verification', `https://t.me/${process.env.BOT_USERNAME || 'twin3bot'}?start=verify_${chatId}`)]
       ])
     });
 

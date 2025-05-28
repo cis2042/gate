@@ -43,7 +43,7 @@ const token = "7151382731:AAEri1r5pPsVWItZryHClRFjWWp0N46W8XI";
 ### 步驟 1: 撤銷舊 Token
 1. 前往 [@BotFather](https://t.me/BotFather)
 2. 發送 `/mybots`
-3. 選擇 `@twin3bot`
+3. 選擇您的 Bot
 4. 選擇 `API Token`
 5. 選擇 `Revoke current token`
 
