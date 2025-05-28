@@ -6,10 +6,28 @@ yarn-error.log*
 
 # Environment variables
 .env
+.env.*
+!.env.example
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Sensitive configuration files
+config/production.json
+config/development.json
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+
+# API Keys and Tokens
+*token*
+*secret*
+*key*
+!*example*
+!*template*
 
 # Logs
 logs/

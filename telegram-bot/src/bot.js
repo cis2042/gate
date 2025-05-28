@@ -139,6 +139,11 @@ class TwinGateBot {
     }
 
     try {
+      // Get bot info first
+      const botInfo = await this.bot.telegram.getMe();
+      this.bot.botInfo = botInfo;
+      logger.info(`🤖 Bot info loaded: @${botInfo.username} (ID: ${botInfo.id})`);
+
       // Set bot commands
       await this.setBotCommands();
 
@@ -156,25 +161,25 @@ class TwinGateBot {
   }
 
   async setBotCommands() {
-    // 簡化的命令列表 - 只保留核心功能
-    const commandsZhTW = [
-      { command: 'verify', description: '🚀 開始/查看驗證狀態' },
-      { command: 'sbt', description: '🏆 查看 SBT 和個人資料' },
-      { command: 'help', description: '❓ 獲取幫助和支援' }
-    ];
-
+    // 簡化的命令列表 - 英文優先
     const commandsEn = [
       { command: 'verify', description: '🚀 Start/Check verification status' },
       { command: 'sbt', description: '🏆 View SBT and profile' },
       { command: 'help', description: '❓ Get help and support' }
     ];
 
-    // 設定預設命令（中文）
-    await this.bot.telegram.setMyCommands(commandsZhTW);
+    const commandsZhTW = [
+      { command: 'verify', description: '🚀 開始/查看驗證狀態' },
+      { command: 'sbt', description: '🏆 查看 SBT 和個人資料' },
+      { command: 'help', description: '❓ 獲取幫助和支援' }
+    ];
 
-    // 設定英文命令
-    await this.bot.telegram.setMyCommands(commandsEn, {
-      language_code: 'en'
+    // 設定預設命令（英文優先）
+    await this.bot.telegram.setMyCommands(commandsEn);
+
+    // 設定中文命令
+    await this.bot.telegram.setMyCommands(commandsZhTW, {
+      language_code: 'zh'
     });
 
     // 設置 Bot 選單按鈕 - 移除 "Tap here to use this bot"

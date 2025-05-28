@@ -287,7 +287,7 @@ gcloud run services update twin-gate \
 ## 📞 聯繫方式
 
 - **項目維護者**：[@cis2042](https://github.com/cis2042)
-- **Telegram Bot**：[@twin3bot](https://t.me/twin3bot)
+- **Telegram Bot**：[@twin3bot](https://t.me/twin3bot) (請聯繫管理員獲取最新 Bot 連結)
 - **問題報告**：[GitHub Issues](https://github.com/cis2042/gate/issues)
 
 ## 🗺️ 發展路線圖
