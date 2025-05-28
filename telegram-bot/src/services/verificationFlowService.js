@@ -97,7 +97,7 @@ class VerificationFlowService {
    */
   async executeFlow(ctx, flowPath, context) {
     const { session, verificationStatus, firstName, chatType } = context;
-    const language = session?.language || 'zh-TW';
+    const language = session?.language || 'en-US';
 
     switch (flowPath) {
       case 'group_welcome':
@@ -137,17 +137,17 @@ class VerificationFlowService {
       await groupService.registerGroup(groupInfo, ctx.from.id);
     }
 
-    const message = `👋 **歡迎 ${firstName}！**\n\n` +
-      `🔐 **Twin Gate 人類身份驗證**\n\n` +
-      `✨ 點擊下方按鈕開始私人驗證流程\n` +
-      `🔒 驗證過程完全保密，不會在群組中顯示\n\n` +
-      `📊 **群組**: ${ctx.chat.title}\n` +
-      `🎯 **來源追蹤**: 已啟用`;
+    const message = `👋 **Welcome ${firstName}!**\n\n` +
+      `🔐 **Twin Gate Human Identity Verification**\n\n` +
+      `✨ Click the button below to start private verification process\n` +
+      `🔒 Verification process is completely confidential and will not be displayed in the group\n\n` +
+      `📊 **Group**: ${ctx.chat.title}\n` +
+      `🎯 **Source Tracking**: Enabled`;
 
     await ctx.reply(message, {
       parse_mode: 'Markdown',
       reply_markup: Markup.inlineKeyboard([
-        [Markup.button.url('🚀 開始驗證', `https://t.me/twin3bot?start=verify_${chatId}`)]
+        [Markup.button.url('🚀 Start Verification', `https://t.me/twin3bot?start=verify_${chatId}`)]
       ])
     });
 
@@ -159,9 +159,11 @@ class VerificationFlowService {
    */
   async showLanguageSelection(ctx, firstName) {
     const message = `🌍 **Welcome to Twin Gate!**\n\n` +
-      `Hello ${firstName}! Welcome to the Twin3.ai Human Identity Verification System.\n\n` +
-      `🔐 **Twin Gate** helps you prove your humanity and earn a unique Humanity Index score\n` +
-      `🎯 Complete verification to get your exclusive Twin3 SBT (Soul Bound Token)\n\n` +
+      `Hello ${firstName}! Prove your humanity and earn your digital identity.\n\n` +
+      `🎯 **What you'll get:**\n` +
+      `🏆 Unique SBT (Soul Bound Token)\n` +
+      `📊 Humanity Index score (0-255)\n` +
+      `🔐 Verified digital identity\n\n` +
       `**Choose an option to get started:**`;
 
     const buttons = [
@@ -209,57 +211,59 @@ class VerificationFlowService {
    * 驗證開始流程 - 顯示完整的驗證任務界面
    */
   async showVerificationStart(ctx, language, verificationStatus) {
-    // 顯示完整的驗證任務界面，包含所有等級
+    // 使用多語言系統
+    const { t } = require('../locales');
+
     const taskMessage = `**Task #001**\n\n` +
       `**Proof of Humanity**\n\n` +
-      `您必須證明您不是機器人才能成為我們的一員。有些機器人已經變得如此複雜，很難將它們與真人區分開來。您通過的人類驗證任務等級越高，您就越有可能是真人。\n\n` +
-      `人類驗證任務目前開放到第 3 級，您將通過日常生活中熟悉的驗證方法來證明您不是機器人。此過程僅用於身份或設備識別，不會保留您的個人資訊。\n\n` +
-      `**您目前的身份等級：**\n` +
-      `${verificationStatus.verificationLevel >= 1 ? '✅' : '⭕'} Level 1 - Google reCAPTCHA\n` +
-      `${verificationStatus.verificationLevel >= 2 ? '✅' : '⭕'} Level 2 - 手機驗證\n` +
-      `${verificationStatus.verificationLevel >= 3 ? '✅' : '⭕'} Level 3 - 生物識別\n\n` +
-      `完成至少第 2 級以獲得免費鑄造您的 DNA NFT。\n\n` +
-      `👇 **選擇要進行的驗證等級：**`;
+      `${t('verification.task_description', language)}\n\n` +
+      `${t('verification.task_info', language)}\n\n` +
+      `**${t('verification.current_level', language)}:**\n` +
+      `${verificationStatus.verificationLevel >= 1 ? '✅' : '⭕'} Level 1 - ${t('verification.level1.title', language)}\n` +
+      `${verificationStatus.verificationLevel >= 2 ? '✅' : '⭕'} Level 2 - ${t('verification.level2.title', language)}\n` +
+      `${verificationStatus.verificationLevel >= 3 ? '✅' : '⭕'} Level 3 - ${t('verification.level3.title', language)}\n\n` +
+      `${t('verification.requirement', language)}\n\n` +
+      `👇 **${t('verification.choose_level', language)}:**`;
 
     // 創建驗證等級按鈕
     const buttons = [];
 
     // Level 1 按鈕
     if (verificationStatus.verificationLevel < 1) {
-      buttons.push([Markup.button.callback('🟢 開始 Level 1 驗證', 'start_level_1')]);
+      buttons.push([Markup.button.callback(`🟢 ${t('verification.level1.button', language)}`, 'start_level_1')]);
     } else {
-      buttons.push([Markup.button.callback('✅ Level 1 已完成', 'level_1_completed')]);
+      buttons.push([Markup.button.callback(`✅ ${t('verification.level1.completed', language)}`, 'level_1_completed')]);
     }
 
     // Level 2 按鈕
     if (verificationStatus.verificationLevel < 2) {
       if (verificationStatus.verificationLevel >= 1) {
-        buttons.push([Markup.button.callback('🟡 開始 Level 2 驗證', 'start_level_2')]);
+        buttons.push([Markup.button.callback(`🟡 ${t('verification.level2.button', language)}`, 'start_level_2')]);
       } else {
-        buttons.push([Markup.button.callback('🔒 Level 2 (需完成 Level 1)', 'level_locked')]);
+        buttons.push([Markup.button.callback(`🔒 ${t('verification.level2.locked', language)}`, 'level_locked')]);
       }
     } else {
-      buttons.push([Markup.button.callback('✅ Level 2 已完成', 'level_2_completed')]);
+      buttons.push([Markup.button.callback(`✅ ${t('verification.level2.completed', language)}`, 'level_2_completed')]);
     }
 
     // Level 3 按鈕
     if (verificationStatus.verificationLevel < 3) {
       if (verificationStatus.verificationLevel >= 2) {
-        buttons.push([Markup.button.callback('🔴 開始 Level 3 驗證', 'start_level_3')]);
+        buttons.push([Markup.button.callback(`🔴 ${t('verification.level3.button', language)}`, 'start_level_3')]);
       } else {
-        buttons.push([Markup.button.callback('🔒 Level 3 (需完成 Level 2)', 'level_locked')]);
+        buttons.push([Markup.button.callback(`🔒 ${t('verification.level3.locked', language)}`, 'level_locked')]);
       }
     } else {
-      buttons.push([Markup.button.callback('✅ Level 3 已完成', 'level_3_completed')]);
+      buttons.push([Markup.button.callback(`✅ ${t('verification.level3.completed', language)}`, 'level_3_completed')]);
     }
 
     // 如果可以鑄造 SBT，添加 SBT 按鈕
     if (verificationStatus.verificationLevel >= 2 && !verificationStatus.hasSBT) {
-      buttons.push([Markup.button.callback('🏆 鑄造 Twin3 SBT', 'mint_sbt')]);
+      buttons.push([Markup.button.callback(`🏆 ${t('buttons.mint_sbt', language)}`, 'mint_sbt')]);
     }
 
     // 返回主選單按鈕
-    buttons.push([Markup.button.callback('🏠 主選單', 'flow_main')]);
+    buttons.push([Markup.button.callback(t('buttons.main_menu', language), 'flow_main')]);
 
     if (ctx.callbackQuery) {
       await ctx.editMessageText(taskMessage, {

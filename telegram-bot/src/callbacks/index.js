@@ -48,8 +48,8 @@ async function showMainWelcome(ctx, language, firstName) {
     t('welcome.get_started', language);
 
   await ctx.replyWithMarkdown(welcomeMessage, Markup.inlineKeyboard([
-    [Markup.button.callback('🚀 開始驗證', 'start_verification')],
-    [Markup.button.callback('🌐 語言設定', 'menu_language')]
+    [Markup.button.callback('🚀 Start Verification', 'start_verification')],
+    [Markup.button.callback('🌐 Language Settings', 'menu_language')]
   ]));
 }
 
@@ -316,7 +316,7 @@ function setupCallbacks(bot) {
     try {
       const userId = ctx.from.id;
       const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
+      const language = session?.language || 'en-US';
 
       await ctx.answerCbQuery();
 
@@ -325,7 +325,7 @@ function setupCallbacks(bot) {
 
     } catch (error) {
       logger.error('Error in back_to_verification callback:', error);
-      await ctx.answerCbQuery(t('errors.general', session?.language || 'zh-TW'));
+      await ctx.answerCbQuery(t('errors.general', session?.language || 'en-US'));
     }
   });
 
@@ -334,7 +334,7 @@ function setupCallbacks(bot) {
     try {
       const userId = ctx.from.id;
       const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
+      const language = session?.language || 'en-US';
 
       await ctx.answerCbQuery();
 
@@ -348,7 +348,7 @@ function setupCallbacks(bot) {
     } catch (error) {
       logger.error('Error in menu_language callback:', error);
       const session = await getUserSession(ctx.from.id);
-      await ctx.answerCbQuery(t('errors.general', session?.language || 'zh-TW'));
+      await ctx.answerCbQuery(t('errors.general', session?.language || 'en-US'));
     }
   });
 
@@ -394,7 +394,7 @@ function setupCallbacks(bot) {
       await ctx.answerCbQuery();
 
       const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
+      const language = session?.language || 'en-US';
 
       if (!session?.language) {
         await ctx.reply(t('errors.auth_required', language));
@@ -458,7 +458,7 @@ function setupCallbacks(bot) {
       await ctx.answerCbQuery();
 
       const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
+      const language = session?.language || 'en-US';
       const userStatus = await getUserVerificationStatus(userId);
 
       if (!userStatus.currentVerification || userStatus.currentVerification.level !== level) {
@@ -488,7 +488,7 @@ function setupCallbacks(bot) {
             // Level 2 完成，提醒可以鑄造 SBT
             successMessage += `🏆 **恭喜！您現在可以鑄造 Twin3 SBT！**\n\n` +
               `✅ 您已完成 Level 2 驗證，符合 SBT 鑄造條件\n` +
-              `💎 Twin3.ai 將為您生成專屬錢包並鑄造 SBT\n\n`;
+              `💎 Your exclusive SBT will be minted automatically\n\n`;
           }
 
           // 智能引導到下一步
@@ -546,7 +546,7 @@ function setupCallbacks(bot) {
     try {
       const userId = ctx.from.id;
       const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
+      const language = session?.language || 'en-US';
 
       await ctx.answerCbQuery();
 
@@ -601,7 +601,7 @@ function setupCallbacks(bot) {
     try {
       const userId = ctx.from.id;
       const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
+      const language = session?.language || 'en-US';
       const userStatus = await getUserVerificationStatus(userId);
 
       await ctx.answerCbQuery();
@@ -664,7 +664,7 @@ function setupCallbacks(bot) {
     try {
       const userId = ctx.from.id;
       const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
+      const language = session?.language || 'en-US';
       const userStatus = await getUserVerificationStatus(userId);
 
       await ctx.answerCbQuery();
@@ -726,7 +726,7 @@ function setupCallbacks(bot) {
   bot.action('level_locked', async (ctx) => {
     const userId = ctx.from.id;
     const session = await getUserSession(userId);
-    const language = session?.language || 'zh-TW';
+    const language = session?.language || 'en-US';
     await ctx.answerCbQuery(t('buttons.complete_previous_level', language));
   });
 
@@ -735,7 +735,7 @@ function setupCallbacks(bot) {
     const level = ctx.match[1];
     const userId = ctx.from.id;
     const session = await getUserSession(userId);
-    const language = session?.language || 'zh-TW';
+    const language = session?.language || 'en-US';
     await ctx.answerCbQuery(t('buttons.level_completed', language, { level }));
   });
 
@@ -744,7 +744,7 @@ function setupCallbacks(bot) {
     try {
       const userId = ctx.from.id;
       const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
+      const language = session?.language || 'en-US';
 
       await ctx.answerCbQuery();
 
@@ -829,7 +829,7 @@ function setupCallbacks(bot) {
     try {
       const userId = ctx.from.id;
       const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
+      const language = session?.language || 'en-US';
 
       await ctx.answerCbQuery();
 
@@ -885,7 +885,7 @@ function setupCallbacks(bot) {
     try {
       const userId = ctx.from.id;
       const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
+      const language = session?.language || 'en-US';
 
       await ctx.answerCbQuery();
 
@@ -999,7 +999,7 @@ Welcome back! Choose what you'd like to do:
 
       const userId = ctx.from.id;
       const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
+      const language = session?.language || 'en-US';
 
       if (!session?.language) {
         await ctx.editMessageText(
@@ -1039,39 +1039,32 @@ Welcome back! Choose what you'd like to do:
     try {
       await ctx.answerCbQuery('ℹ️ 查看幫助信息...');
 
-      const helpMessage = `❓ **Twin Gate Bot 說明**\n\n` +
-        `🤖 **關於 Twin3.ai 人類驗證**\n` +
-        `Twin3.ai 是領先的去中心化人類身份驗證平台，透過多層級驗證技術幫助用戶證明自己的人類身份，並獲得獨特的 Humanity Index 分數。\n\n` +
-        `🔐 **Twin Gate** 是基於 Twin3.ai 技術的 Telegram 驗證機器人，提供：\n` +
-        `• 三級漸進式人類身份驗證\n` +
-        `• 0-255 分的 Humanity Index 評分系統\n` +
-        `• 專屬的 SBT (Soul Bound Token) 鑄造\n` +
-        `• 完整的隱私保護和數據安全\n\n` +
-        `**可用指令：**\n` +
-        `/verify - 🚀 開始/查看驗證狀態\n` +
-        `/sbt - 🏆 查看 SBT 和個人資料\n` +
-        `/help - ❓ 顯示此說明訊息\n\n` +
-        `**驗證等級：**\n` +
+      const helpMessage = `❓ **Twin Gate Bot Help**\n\n` +
+        `🔐 **Human Identity Verification**\n` +
+        `Prove your humanity and earn your digital identity through simple verification tasks.\n\n` +
+        `**Available Commands:**\n` +
+        `/verify - 🚀 Start verification\n` +
+        `/sbt - 🏆 View your SBT\n` +
+        `/help - ❓ Show this help\n\n` +
+        `**Verification Levels:**\n` +
         `• Level 1 - Google reCAPTCHA\n` +
-        `• Level 2 - SMS 驗證\n` +
-        `• Level 3 - 生物識別驗證\n\n` +
-        `**開始使用：**\n` +
-        `1. 使用 🚀 /verify 開始驗證\n` +
-        `2. 依序完成驗證等級\n` +
-        `3. 完成 Level 2 後可鑄造 SBT\n` +
-        `4. 完成 Level 3 達到最高 Humanity Index\n\n` +
-        `**支援：**\n` +
-        `如需協助，請聯繫我們的支援團隊或查看官方文檔。\n\n` +
-        `**隱私：**\n` +
-        `您的數據經過加密保護，我們只儲存必要的驗證資訊。`;
+        `• Level 2 - SMS Verification\n` +
+        `• Level 3 - Biometric Authentication\n\n` +
+        `**Getting Started:**\n` +
+        `1. Use 🚀 /verify to start\n` +
+        `2. Complete levels in order\n` +
+        `3. Mint SBT after Level 2\n` +
+        `4. Achieve maximum score with Level 3\n\n` +
+        `**Privacy:**\n` +
+        `Your data is secure. We only store necessary verification information.`;
 
       await ctx.editMessageText(helpMessage, {
         parse_mode: 'Markdown',
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.url('🌐 Twin3.ai 官網', 'https://twin3.ai')],
-          [Markup.button.url('📚 技術文檔', 'https://docs.twin3.ai')],
-          [Markup.button.url('💬 支援群組', 'https://t.me/twin3support')],
-          [Markup.button.callback('🚀 開始驗證', 'redirect_to_verify')]
+          [Markup.button.url('🌐 Official Website', 'https://twin3.ai')],
+          [Markup.button.url('📚 Documentation', 'https://docs.twin3.ai')],
+          [Markup.button.url('💬 Support', 'https://t.me/twin3support')],
+          [Markup.button.callback('🚀 Start Verification', 'redirect_to_verify')]
         ])
       });
     } catch (error) {
@@ -1364,7 +1357,7 @@ Contact our support team for assistance.
     try {
       const userId = ctx.from.id;
       const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
+      const language = session?.language || 'en-US';
 
       await ctx.answerCbQuery();
 
@@ -1417,7 +1410,7 @@ Contact our support team for assistance.
           `🏷️ **群組**: ${stats.title}\n` +
           `✅ **驗證次數**: ${stats.verificationCount}\n` +
           `👥 **成員數**: ${stats.memberCount}\n` +
-          `📅 **註冊時間**: ${new Date(stats.registeredAt).toLocaleDateString('zh-TW')}\n` +
+          `📅 **註冊時間**: ${new Date(stats.registeredAt).toLocaleDateString('en-US')}\n` +
           `🔄 **狀態**: ${stats.isActive ? '✅ 啟用' : '❌ 停用'}`;
 
         await ctx.editMessageText(message, {
@@ -1446,7 +1439,7 @@ Contact our support team for assistance.
       await ctx.answerCbQuery();
 
       const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
+      const language = session?.language || 'en-US';
 
       const profileResult = await sbtService.getUserProfileAndSBT(userId);
 
@@ -1489,7 +1482,7 @@ Contact our support team for assistance.
 
       const userId = ctx.from.id;
       const session = await getUserSession(userId);
-      const language = session?.language || 'zh-TW';
+      const language = session?.language || 'en-US';
 
       const profileResult = await sbtService.getUserProfileAndSBT(userId);
 
@@ -1530,7 +1523,7 @@ Contact our support team for assistance.
       if (sbtDetails.hasSBT) {
         const detailMessage = `💎 **SBT 詳細資訊**\n\n` +
           `🆔 **Token ID**: ${sbtDetails.tokenId}\n` +
-          `📅 **鑄造時間**: ${new Date(sbtDetails.mintedAt).toLocaleDateString('zh-TW')}\n` +
+          `📅 **鑄造時間**: ${new Date(sbtDetails.mintedAt).toLocaleDateString('en-US')}\n` +
           `🎯 **Humanity Index**: ${sbtDetails.humanityIndex}/255\n` +
           `📊 **驗證等級**: Level ${sbtDetails.verificationLevel}/3\n\n` +
           `🔗 **區塊鏈資訊**:\n` +
@@ -1575,7 +1568,7 @@ Contact our support team for assistance.
           `✅ 請求 ID: ${mintData.mintRequestId}\n` +
           `💰 錢包地址: \`${mintData.walletAddress}\`\n` +
           `⏱️ 預計完成時間: ${mintData.estimatedMintTime}\n\n` +
-          `🔄 Twin3.ai 正在為您生成專屬錢包並鑄造 SBT...\n\n` +
+          `🔄 Your SBT is being minted...\n\n` +
           `💡 鑄造完成後，您將收到通知。`;
 
         await ctx.editMessageText(message, {
@@ -1613,23 +1606,19 @@ Contact our support team for assistance.
     try {
       await ctx.answerCbQuery();
 
-      const sbtInfoMessage = `🏆 **什麼是 Twin3 SBT？**\n\n` +
-        `💎 **Soul Bound Token (靈魂綁定代幣)**\n` +
-        `SBT 是一種不可轉移的 NFT，代表您的數位身份證明。\n\n` +
-        `✨ **Twin3 SBT 特色**:\n` +
-        `• 🔒 永久綁定您的身份\n` +
-        `• 🌐 區塊鏈上的身份證明\n` +
-        `• 🎯 記錄您的 Humanity Index\n` +
-        `• 🏅 展示您的驗證等級\n\n` +
-        `📋 **獲得條件**:\n` +
-        `• ✅ 完成 Level 1 驗證\n` +
-        `• ✅ 完成 Level 2 驗證 ← 必需\n` +
-        `• ⭐ 可選：完成 Level 3 驗證\n\n` +
-        `🔗 **技術規格**:\n` +
-        `• 網絡：BNB Smart Chain\n` +
-        `• 標準：ERC-721 (不可轉移)\n` +
-        `• 存儲：IPFS + Arweave\n\n` +
-        `💡 完成 Level 2 驗證後，Twin3.ai 將自動為您生成錢包並鑄造專屬 SBT！`;
+      const sbtInfoMessage = `🏆 **What is Twin3 SBT?**\n\n` +
+        `💎 **Soul Bound Token**\n` +
+        `Your unique digital identity proof that cannot be transferred.\n\n` +
+        `✨ **Features**:\n` +
+        `• 🔒 Permanently linked to your identity\n` +
+        `• 🌐 Blockchain-based verification\n` +
+        `• 🎯 Records your Humanity Index\n` +
+        `• 🏅 Shows your verification level\n\n` +
+        `📋 **Requirements**:\n` +
+        `• ✅ Complete Level 1 verification\n` +
+        `• ✅ Complete Level 2 verification ← Required\n` +
+        `• ⭐ Optional: Complete Level 3 verification\n\n` +
+        `💡 Complete Level 2 verification to automatically mint your exclusive SBT!`;
 
       await ctx.editMessageText(sbtInfoMessage, {
         parse_mode: 'Markdown',
@@ -1709,7 +1698,7 @@ function formatTwin3VerificationStatus(data) {
 ⏳ *驗證進行中*
 
 📊 *當前狀態：* 等待驗證完成
-⏰ *開始時間：* ${new Date(data.createdAt).toLocaleString('zh-TW')}
+⏰ *開始時間：* ${new Date(data.createdAt).toLocaleString('en-US')}
 🔗 *驗證鏈接：* ${data.status === 'pending' ? '有效' : '已過期'}
 
 💡 *提示：請完成網頁驗證後回來檢查狀態*
@@ -1724,7 +1713,7 @@ ${passed ? '✅' : '❌'} *驗證${passed ? '成功' : '未通過'}*
 
 🎯 *您的 Humanity Index：${humanityIndex}/255*
 📊 *驗證狀態：* ${passed ? '已通過' : '未達標準'}
-📅 *完成時間：* ${new Date(data.user.verificationCompletedAt).toLocaleString('zh-TW')}
+📅 *完成時間：* ${new Date(data.user.verificationCompletedAt).toLocaleString('en-US')}
 
 ${passed ?
   '🎉 恭喜！您已成功完成 Twin3 人類驗證。您的專屬 Twin3 SBT 正在為您準備中！' :

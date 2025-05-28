@@ -27,7 +27,7 @@ loadLanguage('de-DE', 'de-DE');
 loadLanguage('es-ES', 'es-ES');
 loadLanguage('ru-RU', 'ru-RU');
 
-const defaultLanguage = 'zh-TW';
+const defaultLanguage = 'en-US';
 
 /**
  * 獲取翻譯文本
