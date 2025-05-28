@@ -1,5 +1,6 @@
 const { Telegraf, Scenes, session } = require('telegraf');
 const { message } = require('telegraf/filters');
+const express = require('express');
 require('dotenv').config();
 
 const logger = require('./utils/logger');
@@ -15,6 +16,8 @@ class TwinGateBot {
   constructor() {
     this.bot = null;
     this.stage = null;
+    this.app = null;
+    this.server = null;
     this.initialized = false;
   }
 
@@ -22,6 +25,9 @@ class TwinGateBot {
     try {
       // Validate required environment variables
       this.validateConfig();
+
+      // Setup Express server for health checks
+      this.setupExpressServer();
 
       // Create bot instance
       this.bot = new Telegraf(process.env.BOT_TOKEN);
@@ -70,6 +76,34 @@ class TwinGateBot {
     if (missing.length > 0) {
       throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
     }
+  }
+
+  setupExpressServer() {
+    this.app = express();
+    const port = process.env.PORT || 3000;
+
+    // Middleware
+    this.app.use(express.json());
+
+    // Health check endpoint
+    this.app.get('/health', (req, res) => {
+      res.status(200).json(this.getHealthStatus());
+    });
+
+    // Root endpoint
+    this.app.get('/', (req, res) => {
+      res.status(200).json({
+        message: 'Twin Gate Bot is running',
+        service: 'twin-gate-bot',
+        version: require('../package.json').version || '1.0.0',
+        status: 'active'
+      });
+    });
+
+    // Start server
+    this.server = this.app.listen(port, '0.0.0.0', () => {
+      logger.info(`🌐 HTTP server listening on port ${port}`);
+    });
   }
 
   setupErrorHandling() {
@@ -192,13 +226,23 @@ class TwinGateBot {
 
   async gracefulShutdown() {
     try {
-      logger.info('Stopping bot...');
+      logger.info('Stopping bot and server...');
 
-      if (this.bot) {
-        await this.bot.stop();
+      // Stop HTTP server
+      if (this.server) {
+        await new Promise((resolve) => {
+          this.server.close(resolve);
+        });
+        logger.info('HTTP server stopped');
       }
 
-      logger.info('Bot stopped successfully');
+      // Stop bot
+      if (this.bot) {
+        await this.bot.stop();
+        logger.info('Bot stopped');
+      }
+
+      logger.info('Graceful shutdown completed');
       process.exit(0);
     } catch (error) {
       logger.error('Error during shutdown:', error);
