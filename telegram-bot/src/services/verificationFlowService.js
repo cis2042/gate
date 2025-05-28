@@ -61,17 +61,35 @@ class VerificationFlowService {
       return 'language_selection';
     }
 
-    // 根據驗證狀態和命令決定路徑
-    if (command === 'status' || verificationStatus.verificationLevel > 0) {
-      return 'verification_dashboard';
-    }
+    // 根據命令和驗證狀態智能決定路徑
+    switch (command) {
+      case 'verify':
+        // 如果沒有任何驗證，顯示驗證開始
+        if (verificationStatus.verificationLevel === 0) {
+          return 'verification_start';
+        }
+        // 如果有部分驗證，顯示儀表板
+        return 'verification_dashboard';
 
-    if (command === 'verify' || verificationStatus.verificationLevel === 0) {
-      return 'verification_start';
-    }
+      case 'status':
+      case 'dashboard':
+        return 'verification_dashboard';
 
-    // 默認：主儀表板
-    return 'main_dashboard';
+      case 'start':
+        // 新用戶或未完成驗證的用戶，引導到驗證
+        if (verificationStatus.verificationLevel === 0) {
+          return 'verification_start';
+        }
+        // 已有驗證的用戶，顯示主儀表板
+        return 'main_dashboard';
+
+      default:
+        // 默認：根據驗證狀態決定
+        if (verificationStatus.verificationLevel === 0) {
+          return 'verification_start';
+        }
+        return 'main_dashboard';
+    }
   }
 
   /**
@@ -188,35 +206,68 @@ class VerificationFlowService {
   }
 
   /**
-   * 驗證開始流程
+   * 驗證開始流程 - 顯示完整的驗證任務界面
    */
   async showVerificationStart(ctx, language, verificationStatus) {
-    const nextLevel = verificationStatus.verificationLevel + 1;
+    // 顯示完整的驗證任務界面，包含所有等級
+    const taskMessage = `**Task #001**\n\n` +
+      `**Proof of Humanity**\n\n` +
+      `您必須證明您不是機器人才能成為我們的一員。有些機器人已經變得如此複雜，很難將它們與真人區分開來。您通過的人類驗證任務等級越高，您就越有可能是真人。\n\n` +
+      `人類驗證任務目前開放到第 3 級，您將通過日常生活中熟悉的驗證方法來證明您不是機器人。此過程僅用於身份或設備識別，不會保留您的個人資訊。\n\n` +
+      `**您目前的身份等級：**\n` +
+      `${verificationStatus.verificationLevel >= 1 ? '✅' : '⭕'} Level 1 - Google reCAPTCHA\n` +
+      `${verificationStatus.verificationLevel >= 2 ? '✅' : '⭕'} Level 2 - 手機驗證\n` +
+      `${verificationStatus.verificationLevel >= 3 ? '✅' : '⭕'} Level 3 - 生物識別\n\n` +
+      `完成至少第 2 級以獲得免費鑄造您的 DNA NFT。\n\n` +
+      `👇 **選擇要進行的驗證等級：**`;
 
-    if (nextLevel > 3) {
-      return await this.showVerificationDashboard(ctx, language, verificationStatus);
+    // 創建驗證等級按鈕
+    const buttons = [];
+
+    // Level 1 按鈕
+    if (verificationStatus.verificationLevel < 1) {
+      buttons.push([Markup.button.callback('🟢 開始 Level 1 驗證', 'start_level_1')]);
+    } else {
+      buttons.push([Markup.button.callback('✅ Level 1 已完成', 'level_1_completed')]);
     }
 
-    const message = `🚀 **開始 Level ${nextLevel} 驗證**\n\n` +
-      `${this.getLevelDescription(nextLevel, language)}\n\n` +
-      `📊 **預期分數**: ${this.getLevelScoreRange(nextLevel)}\n` +
-      `⏱️ **預計時間**: ${this.getLevelDuration(nextLevel)}\n\n` +
-      `🔒 **隱私保護**: 驗證過程完全保密\n` +
-      `✅ **即時結果**: 完成後立即獲得結果`;
+    // Level 2 按鈕
+    if (verificationStatus.verificationLevel < 2) {
+      if (verificationStatus.verificationLevel >= 1) {
+        buttons.push([Markup.button.callback('🟡 開始 Level 2 驗證', 'start_level_2')]);
+      } else {
+        buttons.push([Markup.button.callback('🔒 Level 2 (需完成 Level 1)', 'level_locked')]);
+      }
+    } else {
+      buttons.push([Markup.button.callback('✅ Level 2 已完成', 'level_2_completed')]);
+    }
 
-    const { t } = require('../locales');
-    const buttons = [
-      [Markup.button.callback(`🎯 ${t('buttons.start_level', language)} ${nextLevel}`, `start_level_${nextLevel}`)],
-      [Markup.button.callback(t('buttons.main_menu', language), 'flow_main')]
-    ];
+    // Level 3 按鈕
+    if (verificationStatus.verificationLevel < 3) {
+      if (verificationStatus.verificationLevel >= 2) {
+        buttons.push([Markup.button.callback('🔴 開始 Level 3 驗證', 'start_level_3')]);
+      } else {
+        buttons.push([Markup.button.callback('🔒 Level 3 (需完成 Level 2)', 'level_locked')]);
+      }
+    } else {
+      buttons.push([Markup.button.callback('✅ Level 3 已完成', 'level_3_completed')]);
+    }
+
+    // 如果可以鑄造 SBT，添加 SBT 按鈕
+    if (verificationStatus.verificationLevel >= 2 && !verificationStatus.hasSBT) {
+      buttons.push([Markup.button.callback('🏆 鑄造 Twin3 SBT', 'mint_sbt')]);
+    }
+
+    // 返回主選單按鈕
+    buttons.push([Markup.button.callback('🏠 主選單', 'flow_main')]);
 
     if (ctx.callbackQuery) {
-      await ctx.editMessageText(message, {
+      await ctx.editMessageText(taskMessage, {
         parse_mode: 'Markdown',
         reply_markup: Markup.inlineKeyboard(buttons)
       });
     } else {
-      await ctx.reply(message, {
+      await ctx.reply(taskMessage, {
         parse_mode: 'Markdown',
         reply_markup: Markup.inlineKeyboard(buttons)
       });

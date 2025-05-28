@@ -49,14 +49,14 @@ async function showVerificationTask(ctx, language) {
 }
 
 function setupCommands(bot) {
-  // Start command - 重定向到 verify
+  // Start command - 直接進入統一流程
   bot.start(async (ctx) => {
     try {
       const userId = ctx.from.id;
       const username = ctx.from.username;
       const firstName = ctx.from.first_name;
 
-      logger.userAction(userId, 'start_redirect_to_verify', {
+      logger.userAction(userId, 'start_command', {
         username,
         firstName,
         chatType: ctx.chat.type,
@@ -70,25 +70,15 @@ function setupCommands(bot) {
         startedAt: new Date(),
         username,
         firstName,
-        lastCommand: 'verify'
+        lastCommand: 'start'
       });
 
-      // 重定向到 verify 功能
-      await ctx.reply(
-        '🔄 /start 功能已整合到 /verify 中！\n\n' +
-        '請使用 /verify 開始您的 Twin Gate 人類身份驗證之旅。',
-        {
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: '🚀 開始驗證', callback_data: 'redirect_to_verify' }]
-            ]
-          }
-        }
-      );
+      // 直接進入統一驗證流程
+      await verificationFlowService.handleUnifiedFlow(ctx, 'start');
 
     } catch (error) {
-      logger.error('Error in start command redirect:', error);
-      await ctx.reply('❌ 請使用 /verify 開始驗證。');
+      logger.error('Error in start command:', error);
+      await ctx.reply('❌ 系統暫時無法使用，請稍後再試。');
     }
   });
 

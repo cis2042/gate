@@ -147,21 +147,13 @@ function setupCallbacks(bot) {
 
       logger.userAction(userId, 'flow_language_selection', { language: languageCode });
 
-      await ctx.answerCbQuery();
+      await ctx.answerCbQuery('✅ 語言設定完成！');
 
       // 更新用戶會話
       await updateUserSession(userId, { language: languageCode });
 
-      // 顯示成功訊息並進入主流程
-      await ctx.editMessageText(
-        `✅ 語言設定完成！\n\n歡迎使用 Twin Gate 人類身份驗證系統！`,
-        { parse_mode: 'Markdown' }
-      );
-
-      // 延遲一秒後顯示主儀表板
-      setTimeout(async () => {
-        await verificationFlowService.handleUnifiedFlow(ctx, 'start');
-      }, 1000);
+      // 直接進入驗證流程，不需要延遲
+      await verificationFlowService.handleUnifiedFlow(ctx, 'verify');
 
     } catch (error) {
       logger.error('Error in flow language selection:', error);
@@ -222,21 +214,13 @@ function setupCallbacks(bot) {
   bot.action('start_verification_en', async (ctx) => {
     try {
       const userId = ctx.from.id;
-      await ctx.answerCbQuery();
+      await ctx.answerCbQuery('✅ Language set to English!');
 
       // 設置默認語言為英文
       await updateUserSession(userId, { language: 'en-US' });
 
-      // 顯示成功訊息
-      await ctx.editMessageText(
-        `✅ **Language set to English!**\n\nWelcome to Twin Gate Human Identity Verification System!`,
-        { parse_mode: 'Markdown' }
-      );
-
-      // 延遲一秒後進入驗證流程
-      setTimeout(async () => {
-        await verificationFlowService.handleUnifiedFlow(ctx, 'verify');
-      }, 1000);
+      // 直接進入驗證流程
+      await verificationFlowService.handleUnifiedFlow(ctx, 'verify');
 
     } catch (error) {
       logger.error('Error in start_verification_en callback:', error);
@@ -336,8 +320,8 @@ function setupCallbacks(bot) {
 
       await ctx.answerCbQuery();
 
-      // 使用統一的驗證任務顯示函數
-      await showVerificationTask(ctx, language);
+      // 使用統一驗證流程服務
+      await verificationFlowService.handleUnifiedFlow(ctx, 'verify');
 
     } catch (error) {
       logger.error('Error in back_to_verification callback:', error);
@@ -507,15 +491,26 @@ function setupCallbacks(bot) {
               `💎 Twin3.ai 將為您生成專屬錢包並鑄造 SBT\n\n`;
           }
 
+          // 智能引導到下一步
+          const buttons = [];
           if (updatedStatus.currentLevel <= 3) {
             successMessage += `✨ 您現在可以進行 Level ${updatedStatus.currentLevel} 驗證！`;
+            buttons.push([Markup.button.callback(`🚀 繼續 Level ${updatedStatus.currentLevel}`, `start_level_${updatedStatus.currentLevel}`)]);
           } else {
             successMessage += '🏆 恭喜！您已完成所有驗證等級！';
           }
 
+          // 如果可以鑄造 SBT，添加鑄造按鈕
+          if (level >= 2 && !updatedStatus.hasSBT) {
+            buttons.push([Markup.button.callback('🏆 立即鑄造 SBT', 'mint_sbt')]);
+          }
+
+          buttons.push([Markup.button.callback('📊 查看儀表板', 'flow_dashboard')]);
+          buttons.push([Markup.button.callback('🏠 主選單', 'flow_main')]);
+
           await ctx.editMessageText(successMessage, {
             parse_mode: 'Markdown',
-            reply_markup: createVerificationLevelMenu(language, updatedStatus.verificationLevel, updatedStatus.currentLevel)
+            reply_markup: Markup.inlineKeyboard(buttons)
           });
 
         } else if (response.success && response.data.status === 'failed') {
@@ -575,6 +570,7 @@ function setupCallbacks(bot) {
             parse_mode: 'Markdown',
             reply_markup: Markup.inlineKeyboard([
               [Markup.button.url('🚀 開始驗證', response.data.verificationUrl)],
+              [Markup.button.callback('🔄 檢查狀態', `check_level_${1}_status`)],
               [Markup.button.callback('🔙 返回驗證選單', 'back_to_verification')]
             ])
           });
@@ -637,6 +633,7 @@ function setupCallbacks(bot) {
             parse_mode: 'Markdown',
             reply_markup: Markup.inlineKeyboard([
               [Markup.button.url('🚀 開始驗證', response.data.verificationUrl)],
+              [Markup.button.callback('🔄 檢查狀態', `check_level_${2}_status`)],
               [Markup.button.callback('🔙 返回驗證選單', 'back_to_verification')]
             ])
           });
@@ -699,6 +696,7 @@ function setupCallbacks(bot) {
             parse_mode: 'Markdown',
             reply_markup: Markup.inlineKeyboard([
               [Markup.button.url('🚀 開始驗證', response.data.verificationUrl)],
+              [Markup.button.callback('🔄 檢查狀態', `check_level_${3}_status`)],
               [Markup.button.callback('🔙 返回驗證選單', 'back_to_verification')]
             ])
           });
