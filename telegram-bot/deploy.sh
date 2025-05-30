@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Twin Gate Telegram Bot - App Engine 部署腳本
+# Twin Gate Telegram Bot - Compute Engine 部署腳本
 # 使用方法: ./deploy.sh [環境]
 # 環境: dev, staging, production (默認: production)
 
@@ -33,10 +33,14 @@ log_error() {
 # 檢查參數
 ENVIRONMENT=${1:-production}
 PROJECT_ID="twin-gate"
+INSTANCE_NAME="twin-gate-bot"
+ZONE="asia-east1-a"
 
-log_info "開始部署 Twin Gate Telegram Bot 到 App Engine"
+log_info "開始部署 Twin Gate Telegram Bot 到 Compute Engine"
 log_info "環境: $ENVIRONMENT"
 log_info "項目 ID: $PROJECT_ID"
+log_info "實例名稱: $INSTANCE_NAME"
+log_info "區域: $ZONE"
 
 # 檢查必要工具
 if ! command -v gcloud &> /dev/null; then
@@ -64,10 +68,12 @@ fi
 log_info "設置 Google Cloud 項目..."
 gcloud config set project $PROJECT_ID
 
-# 檢查 App Engine 是否已初始化
-if ! gcloud app describe &> /dev/null; then
-    log_warning "App Engine 應用尚未創建，正在創建..."
-    gcloud app create --region=asia-east1
+# 檢查 Compute Engine 實例是否存在
+log_info "檢查 Compute Engine 實例..."
+if ! gcloud compute instances describe $INSTANCE_NAME --zone=$ZONE &> /dev/null; then
+    log_error "Compute Engine 實例 $INSTANCE_NAME 不存在"
+    log_info "請先創建實例或運行 setup-server.sh"
+    exit 1
 fi
 
 # 檢查環境變量
@@ -78,56 +84,76 @@ if [ -z "$BOT_TOKEN" ]; then
     exit 1
 fi
 
-# 安裝依賴
-log_info "安裝 Node.js 依賴..."
-npm ci --only=production
+# 獲取實例外部 IP
+EXTERNAL_IP=$(gcloud compute instances describe $INSTANCE_NAME --zone=$ZONE --format="value(networkInterfaces[0].accessConfigs[0].natIP)")
+log_info "實例外部 IP: $EXTERNAL_IP"
 
-# 運行測試 (如果存在)
-if [ -f "package.json" ] && npm run | grep -q "test"; then
-    log_info "運行測試..."
-    npm test
+# 檢查實例是否運行
+INSTANCE_STATUS=$(gcloud compute instances describe $INSTANCE_NAME --zone=$ZONE --format="value(status)")
+if [ "$INSTANCE_STATUS" != "RUNNING" ]; then
+    log_info "啟動 Compute Engine 實例..."
+    gcloud compute instances start $INSTANCE_NAME --zone=$ZONE
+    log_info "等待實例啟動..."
+    sleep 30
 fi
 
-# 創建臨時 app.yaml (包含環境變量)
-log_info "準備部署配置..."
-cp app.yaml app.yaml.backup
+# 準備部署文件
+log_info "準備部署文件..."
+tar -czf twin-gate-bot.tar.gz \
+    --exclude=node_modules \
+    --exclude=.git \
+    --exclude=logs \
+    --exclude=*.log \
+    --exclude=.env \
+    src/ package.json ecosystem.config.js setup-server.sh
 
-# 根據環境設置不同的配置
-case $ENVIRONMENT in
-    "dev")
-        SERVICE_NAME="twin-gate-bot-dev"
-        ;;
-    "staging")
-        SERVICE_NAME="twin-gate-bot-staging"
-        ;;
-    "production")
-        SERVICE_NAME="twin-gate-bot"
-        ;;
-    *)
-        log_error "未知環境: $ENVIRONMENT"
-        exit 1
-        ;;
-esac
+# 上傳文件到服務器
+log_info "上傳文件到服務器..."
+gcloud compute scp twin-gate-bot.tar.gz ubuntu@$INSTANCE_NAME:/tmp/ --zone=$ZONE
 
-# 部署到 App Engine
-log_info "部署到 App Engine..."
-gcloud app deploy app.yaml \
-    --service=$SERVICE_NAME \
-    --version=$(date +%Y%m%d-%H%M%S) \
-    --promote \
-    --stop-previous-version \
-    --quiet
+# 在服務器上執行部署
+log_info "在服務器上執行部署..."
+gcloud compute ssh ubuntu@$INSTANCE_NAME --zone=$ZONE --command="
+    set -e
 
-# 設置環境變量
-log_info "設置環境變量..."
-gcloud app versions describe $(gcloud app versions list --service=$SERVICE_NAME --limit=1 --format="value(id)") --service=$SERVICE_NAME > /dev/null
+    # 創建應用目錄
+    mkdir -p /home/ubuntu/twin-gate-bot
+    cd /home/ubuntu/twin-gate-bot
 
-# 獲取部署的 URL
-APP_URL=$(gcloud app browse --service=$SERVICE_NAME --no-launch-browser 2>&1 | grep -o 'https://[^[:space:]]*')
+    # 備份現有版本
+    if [ -d 'telegram-bot' ]; then
+        sudo mv telegram-bot backup/telegram-bot-\$(date +%Y%m%d-%H%M%S) 2>/dev/null || true
+    fi
 
-if [ -z "$APP_URL" ]; then
-    APP_URL="https://$SERVICE_NAME-dot-$PROJECT_ID.appspot.com"
-fi
+    # 解壓新版本
+    tar -xzf /tmp/twin-gate-bot.tar.gz -C .
+
+    # 設置環境變量
+    echo 'BOT_TOKEN=$BOT_TOKEN' > .env
+    echo 'API_BASE_URL=https://api.twin3.ai' >> .env
+    echo 'BOT_USERNAME=twin3bot' >> .env
+    echo 'NODE_ENV=production' >> .env
+    echo 'PORT=3000' >> .env
+
+    # 安裝依賴
+    npm ci --only=production
+
+    # 停止現有進程
+    pm2 delete twin-gate-bot 2>/dev/null || true
+
+    # 啟動新進程
+    pm2 start ecosystem.config.js --env production
+
+    # 保存 PM2 配置
+    pm2 save
+
+    echo '部署完成！'
+"
+
+# 清理臨時文件
+rm -f twin-gate-bot.tar.gz
+
+APP_URL="http://$EXTERNAL_IP"
 
 log_success "部署完成！"
 log_info "應用 URL: $APP_URL"

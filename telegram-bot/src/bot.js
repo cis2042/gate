@@ -15,7 +15,9 @@ class TwinGateBot {
     this.app = null;
     this.server = null;
     this.initialized = false;
+    // Compute Engine 環境使用 Webhook 模式
     this.isWebhookMode = process.env.NODE_ENV === 'production';
+    this.serverIP = null;
   }
 
   async initialize() {
@@ -73,42 +75,38 @@ class TwinGateBot {
 
   setupExpressServer() {
     this.app = express();
-    const port = process.env.PORT || 8080; // App Engine 默認端口
+    const port = process.env.PORT || 3000; // Compute Engine 默認端口
 
     // Middleware
     this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ extended: true }));
 
-    // Trust proxy for App Engine
+    // Trust proxy for Nginx
     this.app.set('trust proxy', true);
 
-    // Health check endpoint (App Engine 要求)
+    // Health check endpoint
     this.app.get('/health', (req, res) => {
       res.status(200).json(this.getHealthStatus());
-    });
-
-    // Readiness check endpoint (App Engine 要求)
-    this.app.get('/_ah/health', (req, res) => {
-      res.status(200).send('OK');
     });
 
     // Root endpoint
     this.app.get('/', (req, res) => {
       res.status(200).json({
-        message: 'Twin Gate Bot is running on App Engine',
+        message: 'Twin Gate Bot is running on Compute Engine',
         service: 'twin-gate-telegram-bot',
         version: require('../package.json').version || '1.0.0',
         status: 'active',
-        platform: 'Google App Engine',
-        environment: process.env.NODE_ENV || 'development'
+        platform: 'Google Compute Engine',
+        environment: process.env.NODE_ENV || 'development',
+        processManager: 'PM2'
       });
     });
 
-    // Webhook endpoint for Telegram (App Engine 模式)
+    // Webhook endpoint for Telegram
     this.app.post('/webhook', (req, res) => {
       try {
         if (this.bot && this.isWebhookMode) {
-          // 在 App Engine 中，我們需要手動處理 webhook 更新
+          // 處理 Telegram webhook 更新
           this.bot.processUpdate(req.body);
         }
         res.status(200).send('OK');
@@ -118,9 +116,19 @@ class TwinGateBot {
       }
     });
 
+    // PM2 健康檢查端點
+    this.app.get('/pm2/status', (req, res) => {
+      res.status(200).json({
+        pm2: true,
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        pid: process.pid
+      });
+    });
+
     // Start server
-    this.server = this.app.listen(port, () => {
-      logger.info(`🌐 HTTP server listening on port ${port} (App Engine mode)`);
+    this.server = this.app.listen(port, '0.0.0.0', () => {
+      logger.info(`🌐 HTTP server listening on port ${port} (Compute Engine + PM2 mode)`);
     });
   }
 
@@ -319,11 +327,11 @@ class TwinGateBot {
   }
 
   async startWebhookMode() {
-    logger.info('🌐 Starting bot in webhook mode (App Engine)...');
+    logger.info('🌐 Starting bot in webhook mode (Compute Engine)...');
 
     try {
-      // 設置 webhook URL
-      const webhookUrl = `https://${process.env.GAE_SERVICE || 'twin-gate-bot'}-dot-${process.env.GOOGLE_CLOUD_PROJECT || 'twin-gate'}.appspot.com/webhook`;
+      // 獲取 Compute Engine 外部 IP
+      const webhookUrl = await this.getWebhookUrl();
 
       // 刪除現有的 webhook
       await this.bot.deleteWebHook();
@@ -338,6 +346,36 @@ class TwinGateBot {
     } catch (error) {
       logger.error('Failed to set webhook:', error);
       throw error;
+    }
+  }
+
+  async getWebhookUrl() {
+    try {
+      // 嘗試從環境變量獲取
+      if (process.env.WEBHOOK_URL) {
+        return process.env.WEBHOOK_URL;
+      }
+
+      // 嘗試獲取 Compute Engine 外部 IP
+      const axios = require('axios');
+      const response = await axios.get('http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip', {
+        headers: { 'Metadata-Flavor': 'Google' },
+        timeout: 5000
+      });
+
+      const externalIP = response.data;
+      this.serverIP = externalIP;
+
+      // 使用外部 IP 構建 webhook URL
+      return `http://${externalIP}/webhook`;
+
+    } catch (error) {
+      logger.warn('Failed to get external IP from metadata service:', error.message);
+
+      // 回退到預設 URL
+      const fallbackUrl = 'http://34.80.77.23/webhook';
+      logger.info(`Using fallback webhook URL: ${fallbackUrl}`);
+      return fallbackUrl;
     }
   }
 
@@ -581,8 +619,12 @@ class TwinGateBot {
         id: this.bot.botInfo?.id
       } : null,
       environment: process.env.NODE_ENV,
-      platform: 'Google App Engine',
-      version: require('../package.json').version
+      platform: 'Google Compute Engine',
+      processManager: 'PM2',
+      serverIP: this.serverIP,
+      version: require('../package.json').version,
+      memory: process.memoryUsage(),
+      pid: process.pid
     };
   }
 }
