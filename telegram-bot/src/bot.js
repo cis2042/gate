@@ -594,9 +594,15 @@ class TwinGateBot {
       const confirmText = t('language.changed', language);
       await this.bot.sendMessage(chatId, confirmText);
 
-      // 簡化流程，直接返回主菜單
-      setTimeout(() => {
-        this.handleStartCommand(chatId, userId, { id: userId });
+      // 使用選定的語言顯示歡迎界面
+      const ctx = {
+        chat: { id: chatId },
+        from: { id: userId },
+        reply: (text, options) => this.bot.sendMessage(chatId, text, options)
+      };
+
+      setTimeout(async () => {
+        await optimizedVerificationFlow.showSimpleWelcome(ctx, language);
       }, 1000);
     } catch (error) {
       logger.error('Error in setUserLanguage:', error);
@@ -624,10 +630,10 @@ class TwinGateBot {
       const keyboard = {
         inline_keyboard: [
           [
-            { text: '🚀 Continue Verification', callback_data: 'start_verification' }
+            { text: t('buttons.continue_verification', language), callback_data: 'start_verification' }
           ],
           [
-            { text: '🔙 Main Menu', callback_data: 'main_menu' }
+            { text: t('buttons.main_menu', language), callback_data: 'main_menu' }
           ]
         ]
       };

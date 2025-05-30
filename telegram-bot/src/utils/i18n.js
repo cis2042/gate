@@ -10,27 +10,114 @@ const translations = {
     'sbt.info': '🏆 *Your SBT Information*\n\nSoul Bound Token (SBT) represents your verified digital identity.\n\n📊 Status: Checking...\n🔗 Blockchain: BNB Smart Chain\n👤 Profile: Twin3.ai',
     'help.message': '❓ *Twin Gate Help*\n\n🤖 **Available Commands:**\n/verify - Start verification process\n/sbt - View your SBT and profile\n/help - Show this help message\n\n🌐 **About Twin3.ai:**\nTwin3.ai provides human identity verification using advanced AI technology.\n\n📚 **Resources:**\n• Website: https://twin3.ai\n• Documentation: https://docs.twin3.ai\n• Support: https://t.me/twin3support',
 
-    // 新增的翻譯鍵
-    'welcome.simple': '👋 Hi {name}!\n\n🔐 Prove you\'re human\n⏱️ Takes 5-10 minutes\n🏆 Get digital identity\n\n👇 Choose your language first:',
-    'sbt.explanation': 'SBT = Soul Bound Token\nYour unique digital ID that proves you\'re human',
-    'humanity.explanation': 'Humanity Index = Your human score (0-255)\nHigher score = More verified',
-    'verification.time_estimate': '⏱️ Estimated time: {time}',
-    'verification.privacy_note': '🔒 Your data is encrypted and secure',
-    'level.1.simple': 'Level 1: Prove you\'re not a robot',
-    'level.2.simple': 'Level 2: Verify with phone number',
-    'level.3.simple': 'Level 3: Advanced verification',
-    'buttons.simple_mode': '🔰 Simple Mode',
-    'buttons.expert_mode': '🔧 Expert Mode',
-    'buttons.help_me': '❓ Help Me',
-    'buttons.share': '📤 Share',
-    'buttons.invite_friends': '👥 Invite Friends'
+    // 按鈕翻譯
+    'buttons.start_verification': '🚀 Start Verification',
+    'buttons.language_settings': '🌍 Language Settings',
+    'buttons.continue_verification': '🚀 Continue Verification',
+    'buttons.main_menu': '🔙 Main Menu',
+    'buttons.show_progress': '📊 Show Progress',
+    'buttons.view_sbt': '🏆 View SBT',
+    'buttons.help': '❓ Help',
+
+    // 語言選擇
+    'language.choose': '👋 Hi {name}!\n\n🌍 We detected your language preference.\nChoose your preferred language:',
+    'language.other_languages': '➖ Other Languages ➖',
+    'language.show_less': '⬆️ Show Less',
+
+    // 進度相關
+    'progress.title': '📊 **Verification Progress**',
+    'progress.overall': '**Overall Progress:** {percent}%',
+    'progress.levels': '{current}/{total} levels',
+    'progress.humanity_index': '**Humanity Index:** {score}/255',
+    'progress.next_step': '🎯 **Next:** Complete Level {level} to unlock SBT minting',
+
+    // 驗證等級
+    'level.1.title': 'Level 1 - Basic verification',
+    'level.2.title': 'Level 2 - Phone verification',
+    'level.3.title': 'Level 3 - Advanced verification',
+    'level.completed': '✅',
+    'level.pending': '⭕',
+    'level.locked': '🔒',
+
+    // 驗證流程
+    'verification.task_description': 'Prove your humanity and earn your digital identity.',
+    'verification.task_info': 'Complete Level 2 or above to mint SBT.',
+    'verification.current_level': 'Current Level',
+    'verification.choose_level': 'Choose verification level',
+    'verification.requirement': 'Need to complete Level 2 or above to mint SBT.',
+    'verification.level1.button': 'Level 1 - Basic verification',
+    'verification.level1.completed': 'Level 1 - Completed',
+    'verification.level1.title': 'Basic verification',
+    'verification.level2.button': 'Level 2 - Phone verification',
+    'verification.level2.completed': 'Level 2 - Completed',
+    'verification.level2.locked': 'Level 2 - Need to complete Level 1',
+    'verification.level2.title': 'Phone verification',
+    'verification.level3.button': 'Level 3 - Advanced verification',
+    'verification.level3.completed': 'Level 3 - Completed',
+    'verification.level3.locked': 'Level 3 - Need to complete Level 2',
+    'verification.level3.title': 'Advanced verification',
+
+    // 按鈕
+    'buttons.mint_sbt': '🏆 Mint SBT',
+    'buttons.sbt_management': '🏆 SBT Management'
   },
   'zh-TW': {
     'welcome.message': '🌍 歡迎來到 Twin Gate！\n\n你好 *{name}*！證明你的人類身份並獲得數位身份。\n\n🎯 你將獲得：\n🏆 獨特的 SBT（靈魂綁定代幣）\n📊 人性指數評分（0-255）\n🔐 經過驗證的數位身份\n\n選擇一個選項開始：',
     'language.changed': '✅ 語言已更改為繁體中文',
     'general.unknown_command': '❓ 我不理解該命令。請使用 /help 查看可用命令。',
     'sbt.info': '🏆 *您的 SBT 信息*\n\n靈魂綁定代幣（SBT）代表您經過驗證的數位身份。\n\n📊 狀態：檢查中...\n🔗 區塊鏈：BNB 智能鏈\n👤 個人資料：Twin3.ai',
-    'help.message': '❓ *Twin Gate 幫助*\n\n🤖 **可用命令：**\n/verify - 開始驗證流程\n/sbt - 查看您的 SBT 和個人資料\n/help - 顯示此幫助訊息\n\n🌐 **關於 Twin3.ai：**\nTwin3.ai 使用先進的 AI 技術提供人類身份驗證。\n\n📚 **資源：**\n• 網站：https://twin3.ai\n• 文檔：https://docs.twin3.ai\n• 支援：https://t.me/twin3support'
+    'help.message': '❓ *Twin Gate 幫助*\n\n🤖 **可用命令：**\n/verify - 開始驗證流程\n/sbt - 查看您的 SBT 和個人資料\n/help - 顯示此幫助訊息\n\n🌐 **關於 Twin3.ai：**\nTwin3.ai 使用先進的 AI 技術提供人類身份驗證。\n\n📚 **資源：**\n• 網站：https://twin3.ai\n• 文檔：https://docs.twin3.ai\n• 支援：https://t.me/twin3support',
+
+    // 按鈕翻譯
+    'buttons.start_verification': '🚀 開始驗證',
+    'buttons.language_settings': '🌍 語言設定',
+    'buttons.continue_verification': '🚀 繼續驗證',
+    'buttons.main_menu': '🔙 主選單',
+    'buttons.show_progress': '📊 查看進度',
+    'buttons.view_sbt': '🏆 查看 SBT',
+    'buttons.help': '❓ 幫助',
+
+    // 語言選擇
+    'language.choose': '👋 你好 {name}！\n\n🌍 我們偵測到您的語言偏好。\n請選擇您偏好的語言：',
+    'language.other_languages': '➖ 其他語言 ➖',
+    'language.show_less': '⬆️ 顯示較少',
+
+    // 進度相關
+    'progress.title': '📊 **驗證進度**',
+    'progress.overall': '**整體進度：** {percent}%',
+    'progress.levels': '{current}/{total} 等級',
+    'progress.humanity_index': '**人性指數：** {score}/255',
+    'progress.next_step': '🎯 **下一步：** 完成 Level {level} 以解鎖 SBT 鑄造',
+
+    // 驗證等級
+    'level.1.title': 'Level 1 - 基礎驗證',
+    'level.2.title': 'Level 2 - 手機驗證',
+    'level.3.title': 'Level 3 - 高級驗證',
+    'level.completed': '✅',
+    'level.pending': '⭕',
+    'level.locked': '🔒',
+
+    // 驗證流程
+    'verification.task_description': '證明您的人類身份並獲得數位身份驗證。',
+    'verification.task_info': '完成 Level 2 以上才能鑄造 SBT。',
+    'verification.current_level': '當前等級',
+    'verification.choose_level': '選擇驗證等級',
+    'verification.requirement': '需要完成 Level 2 以上才能鑄造 SBT。',
+    'verification.level1.button': 'Level 1 - 基礎驗證',
+    'verification.level1.completed': 'Level 1 - 已完成',
+    'verification.level1.title': '基礎驗證',
+    'verification.level2.button': 'Level 2 - 手機驗證',
+    'verification.level2.completed': 'Level 2 - 已完成',
+    'verification.level2.locked': 'Level 2 - 需要完成 Level 1',
+    'verification.level2.title': '手機驗證',
+    'verification.level3.button': 'Level 3 - 高級驗證',
+    'verification.level3.completed': 'Level 3 - 已完成',
+    'verification.level3.locked': 'Level 3 - 需要完成 Level 2',
+    'verification.level3.title': '高級驗證',
+
+    // 按鈕
+    'buttons.mint_sbt': '🏆 鑄造 SBT',
+    'buttons.sbt_management': '🏆 SBT 管理'
   },
   'zh-CN': {
     'welcome.message': '🌍 欢迎来到 Twin Gate！\n\n你好 *{name}*！证明你的人类身份并获得数字身份。\n\n🎯 你将获得：\n🏆 独特的 SBT（灵魂绑定代币）\n📊 人性指数评分（0-255）\n🔐 经过验证的数字身份\n\n选择一个选项开始：',

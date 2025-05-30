@@ -59,7 +59,10 @@ class OptimizedVerificationFlow {
    * 智能語言選擇 - 優先顯示檢測到的語言
    */
   async showSmartLanguageSelection(ctx, firstName, detectedLanguage) {
-    const message = `👋 Hi ${firstName}!\n\n🌍 We detected your language preference.\nChoose your preferred language:`;
+    const session = await getUserSession(ctx.from.id);
+    const currentLanguage = session?.language || detectedLanguage;
+
+    const message = t('language.choose', currentLanguage, { name: firstName });
 
     // 優先顯示檢測到的語言
     const primaryLanguages = [
@@ -82,15 +85,16 @@ class OptimizedVerificationFlow {
     });
 
     // 分隔線
-    buttons.push([Markup.button.callback('➖ Other Languages ➖', 'show_more_languages')]);
+    const otherLanguagesText = t('language.other_languages', currentLanguage);
+    buttons.push([Markup.button.callback(otherLanguagesText, 'show_more_languages')]);
 
     // 其他語言（折疊）
-    const session = await getUserSession(ctx.from.id);
     if (session?.showAllLanguages) {
       otherLanguages.forEach(lang => {
         buttons.push([Markup.button.callback(lang.name, `lang_${lang.code}`)]);
       });
-      buttons.push([Markup.button.callback('⬆️ Show Less', 'show_less_languages')]);
+      const showLessText = t('language.show_less', currentLanguage);
+      buttons.push([Markup.button.callback(showLessText, 'show_less_languages')]);
     }
 
     await ctx.reply(message, {
@@ -105,12 +109,11 @@ class OptimizedVerificationFlow {
     const userId = ctx.from.id;
     const firstName = ctx.from.first_name || 'Friend';
 
-    const welcomeMessage = t('welcome.message', language, { name: firstName }) ||
-      `🌍 Welcome to Twin Gate, ${firstName}!\n\nProve your humanity and earn your digital identity.`;
+    const welcomeMessage = t('welcome.message', language, { name: firstName });
 
     const buttons = [
-      [Markup.button.callback('🚀 Start Verification', 'start_verification')],
-      [Markup.button.callback('🌍 Language Settings', 'language_settings')]
+      [Markup.button.callback(t('buttons.start_verification', language), 'start_verification')],
+      [Markup.button.callback(t('buttons.language_settings', language), 'language_settings')]
     ];
 
     await ctx.reply(welcomeMessage, {

@@ -1,6 +1,7 @@
 // 進度追蹤服務 - 提供視覺化進度指示
 const logger = require('../utils/logger');
 const { getUserSession, updateUserSession } = require('../utils/userSession');
+const { t } = require('../utils/i18n');
 
 class ProgressTracker {
   constructor() {
@@ -31,22 +32,14 @@ class ProgressTracker {
     const totalProgress = Math.min(level / 3 * 100, 100);
     const progressBar = this.createProgressBar(level, 3, 12);
 
-    // 等級狀態圖標
-    const levelIcons = {
-      0: '⭕',
-      1: '🟢',
-      2: '🟡',
-      3: '🔴'
-    };
-
-    const message = `📊 **Verification Progress**\n\n` +
-      `**Overall Progress:** ${Math.floor(totalProgress)}%\n` +
-      `${progressBar} ${level}/3 levels\n\n` +
-      `**Verification Levels:**\n` +
-      `${level >= 1 ? '✅' : '⭕'} Level 1 - Basic verification\n` +
-      `${level >= 2 ? '✅' : '⭕'} Level 2 - Phone verification\n` +
-      `${level >= 3 ? '✅' : '⭕'} Level 3 - Advanced verification\n\n` +
-      `**Humanity Index:** ${humanityIndex}/255\n` +
+    const message = t('progress.title', language) + '\n\n' +
+      t('progress.overall', language, { percent: Math.floor(totalProgress) }) + '\n' +
+      `${progressBar} ` + t('progress.levels', language, { current: level, total: 3 }) + '\n\n' +
+      `**${t('level.1.title', language)}:**\n` +
+      `${level >= 1 ? t('level.completed', language) : t('level.pending', language)} ${t('level.1.title', language)}\n` +
+      `${level >= 2 ? t('level.completed', language) : t('level.pending', language)} ${t('level.2.title', language)}\n` +
+      `${level >= 3 ? t('level.completed', language) : t('level.pending', language)} ${t('level.3.title', language)}\n\n` +
+      t('progress.humanity_index', language, { score: humanityIndex }) + '\n' +
       `${this.createProgressBar(humanityIndex, 255, 15)}\n\n` +
       `${this.getNextStepMessage(level, language)}`;
 
@@ -57,14 +50,12 @@ class ProgressTracker {
    * 獲取下一步提示
    */
   getNextStepMessage(currentLevel, language) {
-    const nextSteps = {
-      0: '🎯 **Next:** Complete Level 1 to start your journey',
-      1: '🎯 **Next:** Complete Level 2 to unlock SBT minting',
-      2: '🎯 **Next:** Complete Level 3 for maximum verification',
-      3: '🎉 **Congratulations!** All levels completed!'
-    };
+    if (currentLevel >= 3) {
+      return '🎉 **Congratulations!** All levels completed!';
+    }
 
-    return nextSteps[currentLevel] || nextSteps[0];
+    const nextLevel = currentLevel + 1;
+    return t('progress.next_step', language, { level: nextLevel });
   }
 
   /**
