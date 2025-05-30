@@ -1001,21 +1001,17 @@ Welcome back! Choose what you'd like to do:
       const session = await getUserSession(userId);
       const language = session?.language || 'en-US';
 
+      // 如果用戶沒有設置語言，設置默認語言為英文
       if (!session?.language) {
-        await ctx.editMessageText(
-          t('errors.auth_required', language),
-          {
-            parse_mode: 'Markdown',
-            ...Markup.inlineKeyboard([
-              [Markup.button.callback('🔙 Back', 'main_menu')]
-            ])
-          }
-        );
-        return;
+        await updateUserSession(userId, {
+          language: 'en-US',
+          started: true,
+          startedAt: new Date()
+        });
       }
 
-      // Show Twin3.ai verification task
-      await showVerificationTask(ctx, language);
+      // 直接進入驗證流程
+      await verificationFlowService.handleUnifiedFlow(ctx, 'verify');
 
     } catch (error) {
       logger.error('Error in start_verification callback:', error);

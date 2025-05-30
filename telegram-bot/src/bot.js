@@ -100,6 +100,14 @@ class TwinGateBot {
       });
     });
 
+    // Webhook endpoint for Telegram
+    this.app.post('/webhook', (req, res) => {
+      if (this.bot) {
+        this.bot.handleUpdate(req.body);
+      }
+      res.status(200).send('OK');
+    });
+
     // Start server
     this.server = this.app.listen(port, '0.0.0.0', () => {
       logger.info(`🌐 HTTP server listening on port ${port}`);
@@ -147,12 +155,8 @@ class TwinGateBot {
       // Set bot commands
       await this.setBotCommands();
 
-      // Start bot
-      if (process.env.ENABLE_WEBHOOK === 'true') {
-        await this.startWebhook();
-      } else {
-        await this.startPolling();
-      }
+      // Start bot in webhook mode for Cloud Run
+      await this.startWebhookMode();
 
     } catch (error) {
       logger.error('Failed to start bot:', error);
@@ -206,6 +210,16 @@ class TwinGateBot {
 
     await this.bot.launch();
     logger.info('✅ Bot started successfully in polling mode');
+  }
+
+  async startWebhookMode() {
+    // For Cloud Run, we don't use Telegraf's built-in webhook
+    // Instead, we handle updates manually through our Express endpoint
+    logger.info('🌐 Starting bot in webhook mode for Cloud Run...');
+
+    // Just initialize the bot without launching
+    // The webhook endpoint will handle updates
+    logger.info('✅ Bot initialized successfully for webhook mode');
   }
 
   async startWebhook() {

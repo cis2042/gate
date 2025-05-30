@@ -167,7 +167,7 @@ class VerificationFlowService {
       `**Choose an option to get started:**`;
 
     const buttons = [
-      [Markup.button.callback('🚀 Start Verification', 'start_verification_en')],
+      [Markup.button.callback('🚀 Start Verification', 'start_verification')],
       [Markup.button.callback('🌍 Language Settings', 'language_settings')]
     ];
 
