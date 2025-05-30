@@ -148,24 +148,7 @@ class OptimizedVerificationFlow {
     return displayNames[language] || language;
   }
 
-  /**
-   * 保存用戶個性化設定
-   */
-  async saveUserProfile(userId, profileData) {
-    this.userProfiles.set(userId, {
-      ...profileData,
-      timestamp: Date.now()
-    });
 
-    await updateUserSession(userId, { profile: profileData });
-  }
-
-  /**
-   * 獲取用戶個性化設定
-   */
-  getUserProfile(userId) {
-    return this.userProfiles.get(userId);
-  }
 }
 
 // 創建單例實例
