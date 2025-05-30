@@ -1,8 +1,13 @@
-# Twin Gate Telegram Bot - 部署文檔
+# Twin Gate Telegram Bot - App Engine 部署指南
 
-## 部署概覽
+## 🏗️ 架構重構概覽
 
-Twin Gate Telegram Bot 已成功部署到 Google Cloud Run，提供高可用性和自動擴展的服務。
+### 重大變更
+- **Telegram 框架**: Telegraf → `node-telegram-bot-api` (官方推薦)
+- **部署平台**: Google Cloud Run → **Google App Engine**
+- **運行模式**: Webhook (生產) + Polling (開發)
+- **自動縮放**: 0-10 實例，按需擴展
+- **安全性**: 完整的安全標頭和 HTTPS 強制
 
 ## 部署詳情
 
