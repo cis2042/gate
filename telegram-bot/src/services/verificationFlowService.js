@@ -1,10 +1,45 @@
 // 統一驗證流程服務
 const logger = require('../utils/logger');
-const { getUserSession, updateUserSession } = require('../utils/session');
-const { getUserVerificationStatus } = require('../utils/userStatus');
-const { t } = require('../locales');
-const { Markup } = require('telegraf');
-const groupService = require('./groupService');
+const { getUserSession, updateUserSession } = require('../utils/userSession');
+const { t } = require('../utils/i18n');
+
+// 簡化的 Markup 替代 (node-telegram-bot-api 格式)
+const Markup = {
+  button: {
+    callback: (text, data) => ({ text, callback_data: data }),
+    url: (text, url) => ({ text, url })
+  },
+  inlineKeyboard: (buttons) => ({ inline_keyboard: buttons })
+};
+
+// 簡化的用戶狀態獲取
+async function getUserVerificationStatus(userId) {
+  // 模擬數據，實際應該從 Twin3.ai API 獲取
+  return {
+    verificationLevel: 0,
+    humanityIndex: 0,
+    hasSBT: false,
+    level1Completed: false,
+    level2Completed: false,
+    level3Completed: false
+  };
+}
+
+// 簡化的群組服務
+const groupService = {
+  async trackUserSource(userId, sourceInfo) {
+    logger.info(`Tracking user ${userId} from source:`, sourceInfo);
+  },
+  isGroupRegistered(chatId) {
+    return false; // 簡化實現
+  },
+  async registerGroup(groupInfo, adminId) {
+    logger.info(`Registering group:`, groupInfo);
+  },
+  async updateGroupStats(chatId, action) {
+    logger.info(`Updating group stats for ${chatId}: ${action}`);
+  }
+};
 
 class VerificationFlowService {
   constructor() {
@@ -212,7 +247,6 @@ class VerificationFlowService {
    */
   async showVerificationStart(ctx, language, verificationStatus) {
     // 使用多語言系統
-    const { t } = require('../locales');
 
     const taskMessage = `**Task #001**\n\n` +
       `**Proof of Humanity**\n\n` +
@@ -282,7 +316,6 @@ class VerificationFlowService {
    * 主儀表板 - 簡化按鈕
    */
   async showMainDashboard(ctx, language, firstName, verificationStatus) {
-    const { t } = require('../locales');
 
     const message = `👋 **${t('welcome.back', language, { name: firstName })}**\n\n` +
       `🎯 **${t('dashboard.your_status', language)}**:\n` +
@@ -328,7 +361,6 @@ class VerificationFlowService {
    * 創建儀表板按鈕 - 簡化版本
    */
   createDashboardButtons(verificationStatus, language) {
-    const { t } = require('../locales');
     const buttons = [];
 
     // 下一個可用的驗證等級

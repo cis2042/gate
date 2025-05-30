@@ -1,0 +1,100 @@
+# Google App Engine 配置文件
+# Twin Gate Telegram Bot
+
+runtime: nodejs18
+
+# 自動縮放配置
+automatic_scaling:
+  min_instances: 0
+  max_instances: 10
+  target_cpu_utilization: 0.6
+  target_throughput_utilization: 0.6
+
+# 資源配置
+resources:
+  cpu: 1
+  memory_gb: 0.5
+  disk_size_gb: 10
+
+# 環境變量 (敏感信息通過 Secret Manager 管理)
+env_variables:
+  NODE_ENV: production
+  API_BASE_URL: https://api.twin3.ai
+  BOT_USERNAME: twin3bot
+  # BOT_TOKEN 通過 Secret Manager 設置
+
+# 網絡配置
+network:
+  forwarded_ports:
+    - 3000
+
+# 健康檢查
+readiness_check:
+  path: "/health"
+  check_interval_sec: 30
+  timeout_sec: 4
+  failure_threshold: 2
+  success_threshold: 2
+  app_start_timeout_sec: 300
+
+liveness_check:
+  path: "/health"
+  check_interval_sec: 30
+  timeout_sec: 4
+  failure_threshold: 4
+  success_threshold: 2
+
+# 處理程序配置
+handlers:
+  # Webhook 端點
+  - url: /webhook
+    script: auto
+    secure: always
+    
+  # 健康檢查端點
+  - url: /health
+    script: auto
+    secure: optional
+    
+  # 根路徑
+  - url: /
+    script: auto
+    secure: optional
+    
+  # 靜態文件 (如果需要)
+  - url: /static
+    static_dir: static
+    secure: optional
+
+# 安全標頭
+includes:
+  - include: security_headers.yaml
+
+# 錯誤處理
+error_handlers:
+  - file: error.html
+    error_code: over_quota
+  - file: error.html  
+    error_code: dos_api_denial
+  - file: error.html
+    error_code: timeout
+
+# 跳過不需要的文件
+skip_files:
+  - ^(.*/)?#.*#$
+  - ^(.*/)?.*~$
+  - ^(.*/)?.*\.py[co]$
+  - ^(.*/)?.*/RCS/.*$
+  - ^(.*/)?\..*$
+  - ^(.*/)?tests/.*$
+  - ^(.*/)?test/.*$
+  - ^(.*/)?node_modules/.*$
+  - ^(.*/)?coverage/.*$
+  - ^(.*/)?\.nyc_output/.*$
+  - ^(.*/)?logs/.*$
+  - ^(.*/)?\.env.*$
+  - ^(.*/)?README\.md$
+  - ^(.*/)?\.git.*$
+  - ^(.*/)?Dockerfile.*$
+  - ^(.*/)?docker-compose.*$
+  - ^(.*/)?cloudbuild\.yaml$

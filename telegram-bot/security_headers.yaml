@@ -1,0 +1,31 @@
+# 安全標頭配置
+# 為 App Engine 應用程序添加安全標頭
+
+headers:
+  # 防止點擊劫持
+  - name: X-Frame-Options
+    value: DENY
+    
+  # 防止 MIME 類型嗅探
+  - name: X-Content-Type-Options
+    value: nosniff
+    
+  # XSS 保護
+  - name: X-XSS-Protection
+    value: "1; mode=block"
+    
+  # 內容安全策略
+  - name: Content-Security-Policy
+    value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.telegram.org https://api.twin3.ai"
+    
+  # 嚴格傳輸安全
+  - name: Strict-Transport-Security
+    value: "max-age=31536000; includeSubDomains"
+    
+  # 推薦者策略
+  - name: Referrer-Policy
+    value: strict-origin-when-cross-origin
+    
+  # 權限策略
+  - name: Permissions-Policy
+    value: "geolocation=(), microphone=(), camera=()"
