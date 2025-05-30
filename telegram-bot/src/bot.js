@@ -513,12 +513,12 @@ class TwinGateBot {
         // 語言相關
         case 'show_more_languages':
           await updateUserSession(userId, { showAllLanguages: true });
-          await optimizedVerificationFlow.handleSmartWelcome(ctx);
+          await optimizedVerificationFlow.showSmartLanguageSelection(ctx, ctx.from.first_name || 'Friend', 'en-US');
           break;
 
         case 'show_less_languages':
           await updateUserSession(userId, { showAllLanguages: false });
-          await optimizedVerificationFlow.handleSmartWelcome(ctx);
+          await optimizedVerificationFlow.showSmartLanguageSelection(ctx, ctx.from.first_name || 'Friend', 'en-US');
           break;
 
         // 進度查看
