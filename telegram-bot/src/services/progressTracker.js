@@ -13,10 +13,10 @@ class ProgressTracker {
   createProgressBar(current, total, width = 10) {
     const filled = Math.floor((current / total) * width);
     const empty = width - filled;
-    
+
     const filledChar = '█';
     const emptyChar = '░';
-    
+
     return filledChar.repeat(filled) + emptyChar.repeat(empty);
   }
 
@@ -26,16 +26,16 @@ class ProgressTracker {
   getVerificationProgressMessage(verificationStatus, language = 'en-US') {
     const level = verificationStatus.verificationLevel || 0;
     const humanityIndex = verificationStatus.humanityIndex || 0;
-    
+
     // 計算總體進度
     const totalProgress = Math.min(level / 3 * 100, 100);
     const progressBar = this.createProgressBar(level, 3, 12);
-    
+
     // 等級狀態圖標
     const levelIcons = {
       0: '⭕',
       1: '🟢',
-      2: '🟡', 
+      2: '🟡',
       3: '🔴'
     };
 
@@ -81,7 +81,7 @@ class ProgressTracker {
         benefits: ['Start your verification journey', 'Unlock Level 2']
       },
       2: {
-        title: '🟡 Level 2 - Phone Verification', 
+        title: '🟡 Level 2 - Phone Verification',
         description: 'Verify your identity with phone number',
         timeEstimate: '3-5 minutes',
         scoreRange: '80-150 points',
@@ -91,7 +91,7 @@ class ProgressTracker {
       3: {
         title: '🔴 Level 3 - Advanced Verification',
         description: 'Biometric verification with Apple/Google account',
-        timeEstimate: '2-3 minutes', 
+        timeEstimate: '2-3 minutes',
         scoreRange: '120-200 points',
         requirements: ['Apple ID or Google account', 'Biometric authentication'],
         benefits: ['Maximum verification level', 'Highest humanity score', 'Premium features']
@@ -124,12 +124,12 @@ class ProgressTracker {
   getTimeEstimate(levels = [1, 2, 3]) {
     const timeMap = {
       1: 2,  // 2 minutes
-      2: 4,  // 4 minutes  
+      2: 4,  // 4 minutes
       3: 3   // 3 minutes
     };
 
     const totalMinutes = levels.reduce((total, level) => total + (timeMap[level] || 0), 0);
-    
+
     if (totalMinutes < 60) {
       return `${totalMinutes} minutes`;
     } else {
@@ -144,7 +144,7 @@ class ProgressTracker {
    */
   createTimeEstimateMessage(selectedLevels, language = 'en-US') {
     const totalTime = this.getTimeEstimate(selectedLevels);
-    
+
     const message = `⏱️ **Time Estimate**\n\n` +
       `**Selected levels:** ${selectedLevels.join(', ')}\n` +
       `**Total time needed:** ~${totalTime}\n\n` +
@@ -158,59 +158,7 @@ class ProgressTracker {
     return message;
   }
 
-  /**
-   * 獲取成就徽章
-   */
-  getAchievementBadges(verificationStatus) {
-    const badges = [];
-    
-    if (verificationStatus.level1Completed) {
-      badges.push('🥉 First Steps');
-    }
-    
-    if (verificationStatus.level2Completed) {
-      badges.push('🥈 Phone Verified');
-    }
-    
-    if (verificationStatus.level3Completed) {
-      badges.push('🥇 Fully Verified');
-    }
-    
-    if (verificationStatus.humanityIndex >= 100) {
-      badges.push('✅ Human Verified');
-    }
-    
-    if (verificationStatus.humanityIndex >= 200) {
-      badges.push('⭐ Super Human');
-    }
-    
-    if (verificationStatus.hasSBT) {
-      badges.push('💎 SBT Owner');
-    }
 
-    return badges;
-  }
-
-  /**
-   * 創建成就展示消息
-   */
-  createAchievementMessage(verificationStatus, language = 'en-US') {
-    const badges = this.getAchievementBadges(verificationStatus);
-    
-    if (badges.length === 0) {
-      return `🎯 **Your Journey Starts Here!**\n\nComplete verifications to earn achievement badges!`;
-    }
-
-    const message = `🏆 **Your Achievements**\n\n` +
-      badges.map(badge => `${badge}`).join('\n') + '\n\n' +
-      `**Progress Summary:**\n` +
-      `• Verification Level: ${verificationStatus.verificationLevel}/3\n` +
-      `• Humanity Index: ${verificationStatus.humanityIndex}/255\n` +
-      `• SBT Status: ${verificationStatus.hasSBT ? 'Minted ✅' : 'Not minted ⭕'}\n\n` +
-      `Keep going to unlock more achievements! 🚀`;
-
-    return message;
-  }
 
   /**
    * 保存進度數據
@@ -220,7 +168,7 @@ class ProgressTracker {
       ...progressData,
       timestamp: Date.now()
     });
-    
+
     await updateUserSession(userId, { progress: progressData });
   }
 
