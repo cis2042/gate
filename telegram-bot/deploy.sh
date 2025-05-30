@@ -43,8 +43,9 @@ log_info "實例名稱: $INSTANCE_NAME"
 log_info "區域: $ZONE"
 
 # 檢查必要工具
-if ! command -v gcloud &> /dev/null; then
-    log_error "gcloud CLI 未安裝，請先安裝 Google Cloud SDK"
+GCLOUD_PATH="/Users/cis/google-cloud-sdk/bin/gcloud"
+if ! command -v $GCLOUD_PATH &> /dev/null; then
+    log_error "gcloud CLI 未找到: $GCLOUD_PATH"
     exit 1
 fi
 
@@ -59,18 +60,18 @@ if ! command -v npm &> /dev/null; then
 fi
 
 # 檢查是否已登錄 gcloud
-if ! gcloud auth list --filter=status:ACTIVE --format="value(account)" | grep -q .; then
-    log_error "請先登錄 gcloud: gcloud auth login"
+if ! $GCLOUD_PATH auth list --filter=status:ACTIVE --format="value(account)" | grep -q .; then
+    log_error "請先登錄 gcloud: $GCLOUD_PATH auth login"
     exit 1
 fi
 
 # 設置項目
 log_info "設置 Google Cloud 項目..."
-gcloud config set project $PROJECT_ID
+$GCLOUD_PATH config set project $PROJECT_ID
 
 # 檢查 Compute Engine 實例是否存在
 log_info "檢查 Compute Engine 實例..."
-if ! gcloud compute instances describe $INSTANCE_NAME --zone=$ZONE &> /dev/null; then
+if ! $GCLOUD_PATH compute instances describe $INSTANCE_NAME --zone=$ZONE &> /dev/null; then
     log_error "Compute Engine 實例 $INSTANCE_NAME 不存在"
     log_info "請先創建實例或運行 setup-server.sh"
     exit 1
@@ -85,14 +86,14 @@ if [ -z "$BOT_TOKEN" ]; then
 fi
 
 # 獲取實例外部 IP
-EXTERNAL_IP=$(gcloud compute instances describe $INSTANCE_NAME --zone=$ZONE --format="value(networkInterfaces[0].accessConfigs[0].natIP)")
+EXTERNAL_IP=$($GCLOUD_PATH compute instances describe $INSTANCE_NAME --zone=$ZONE --format="value(networkInterfaces[0].accessConfigs[0].natIP)")
 log_info "實例外部 IP: $EXTERNAL_IP"
 
 # 檢查實例是否運行
-INSTANCE_STATUS=$(gcloud compute instances describe $INSTANCE_NAME --zone=$ZONE --format="value(status)")
+INSTANCE_STATUS=$($GCLOUD_PATH compute instances describe $INSTANCE_NAME --zone=$ZONE --format="value(status)")
 if [ "$INSTANCE_STATUS" != "RUNNING" ]; then
     log_info "啟動 Compute Engine 實例..."
-    gcloud compute instances start $INSTANCE_NAME --zone=$ZONE
+    $GCLOUD_PATH compute instances start $INSTANCE_NAME --zone=$ZONE
     log_info "等待實例啟動..."
     sleep 30
 fi
@@ -105,15 +106,15 @@ tar -czf twin-gate-bot.tar.gz \
     --exclude=logs \
     --exclude=*.log \
     --exclude=.env \
-    src/ package.json ecosystem.config.js setup-server.sh
+    src/ package.json package-lock.json ecosystem.config.js setup-server.sh
 
 # 上傳文件到服務器
 log_info "上傳文件到服務器..."
-gcloud compute scp twin-gate-bot.tar.gz ubuntu@$INSTANCE_NAME:/tmp/ --zone=$ZONE
+$GCLOUD_PATH compute scp twin-gate-bot.tar.gz ubuntu@$INSTANCE_NAME:/tmp/ --zone=$ZONE
 
 # 在服務器上執行部署
 log_info "在服務器上執行部署..."
-gcloud compute ssh ubuntu@$INSTANCE_NAME --zone=$ZONE --command="
+$GCLOUD_PATH compute ssh ubuntu@$INSTANCE_NAME --zone=$ZONE --command="
     set -e
 
     # 創建應用目錄

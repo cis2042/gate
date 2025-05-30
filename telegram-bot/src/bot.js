@@ -7,6 +7,9 @@ const apiClient = require('./services/apiClient');
 const errorHandler = require('./utils/errorHandler');
 const { getUserSession, updateUserSession } = require('./utils/userSession');
 const verificationFlowService = require('./services/verificationFlowService');
+const optimizedVerificationFlow = require('./services/optimizedVerificationFlow');
+const progressTracker = require('./services/progressTracker');
+const socialFeatures = require('./services/socialFeatures');
 const { t } = require('./utils/i18n');
 
 class TwinGateBot {
@@ -382,33 +385,41 @@ class TwinGateBot {
   // 命令處理器
   async handleStartCommand(chatId, userId, user) {
     try {
-      const session = await getUserSession(userId);
-      const language = session?.language || 'en-US';
+      // 檢查是否是推薦邀請
+      const startParam = this.extractStartParameter(chatId);
+      if (startParam && startParam.startsWith('invite_')) {
+        const inviteCode = startParam.replace('invite_', '');
+        const referralResult = await socialFeatures.handleReferralInvite(userId, inviteCode);
 
-      // 創建歡迎消息
-      const welcomeText = t('welcome.message', language, {
-        name: user.first_name || user.username || 'User'
-      });
+        if (referralResult.success) {
+          await this.bot.sendMessage(chatId,
+            `🎉 Welcome! You've been invited by a verified human.\n\n` +
+            `🎁 Bonus: +5 humanity points\n` +
+            `🚀 Priority verification unlocked!\n\n` +
+            `Let's get you verified!`
+          );
+        }
+      }
 
-      // 創建按鈕
-      const keyboard = {
-        inline_keyboard: [
-          [
-            { text: '🚀 Start Verification', callback_data: 'start_verification' },
-            { text: '🌍 Language Settings', callback_data: 'language_settings' }
-          ]
-        ]
+      // 使用優化的歡迎流程
+      const ctx = {
+        chat: { id: chatId },
+        from: { id: userId, ...user },
+        reply: (text, options) => this.bot.sendMessage(chatId, text, options)
       };
 
-      await this.bot.sendMessage(chatId, welcomeText, {
-        parse_mode: 'Markdown',
-        reply_markup: keyboard
-      });
+      await optimizedVerificationFlow.handleSmartWelcome(ctx);
 
     } catch (error) {
       logger.error('Error in handleStartCommand:', error);
       await this.bot.sendMessage(chatId, '❌ 發生錯誤，請稍後再試。');
     }
+  }
+
+  // 提取 start 參數
+  extractStartParameter(chatId) {
+    // 這裡應該從消息中提取參數，簡化實現
+    return null;
   }
 
   async handleVerifyCommand(chatId, userId, user) {
@@ -491,8 +502,16 @@ class TwinGateBot {
 
   async handleCallbackQuery(action, chatId, userId, callbackQuery) {
     try {
+      const ctx = {
+        chat: { id: chatId },
+        from: { id: userId, ...callbackQuery.from },
+        reply: (text, options) => this.bot.sendMessage(chatId, text, options),
+        editMessageText: (text, options) => this.bot.editMessageText(text, { chat_id: chatId, message_id: callbackQuery.message.message_id, ...options })
+      };
+
       // 處理不同的回調動作
       switch (action) {
+        // 基本功能
         case 'start_verification':
           await this.handleVerifyCommand(chatId, userId, callbackQuery.from);
           break;
@@ -503,6 +522,60 @@ class TwinGateBot {
 
         case 'main_menu':
           await this.handleStartCommand(chatId, userId, callbackQuery.from);
+          break;
+
+        // 語言相關
+        case 'show_more_languages':
+          await updateUserSession(userId, { showAllLanguages: true });
+          await optimizedVerificationFlow.handleSmartWelcome(ctx);
+          break;
+
+        case 'show_less_languages':
+          await updateUserSession(userId, { showAllLanguages: false });
+          await optimizedVerificationFlow.handleSmartWelcome(ctx);
+          break;
+
+        // 用戶檔案
+        case 'profile_beginner':
+        case 'profile_expert':
+        case 'profile_quick':
+        case 'profile_detailed':
+        case 'profile_social':
+        case 'profile_privacy':
+          const profileType = action.replace('profile_', '');
+          await optimizedVerificationFlow.saveUserProfile(userId, { type: profileType });
+          const session = await getUserSession(userId);
+          await optimizedVerificationFlow.showPersonalizedVerificationStart(ctx, { type: profileType }, session?.language || 'en-US');
+          break;
+
+        case 'profile_skip':
+          await optimizedVerificationFlow.showPersonalizedVerificationStart(ctx, { type: 'default' }, 'en-US');
+          break;
+
+        // 進度和統計
+        case 'show_progress':
+          await this.showVerificationProgress(chatId, userId);
+          break;
+
+        case 'show_achievements':
+          await this.showAchievements(chatId, userId);
+          break;
+
+        // 社交功能
+        case 'invite_friends':
+          await this.showInviteFriends(chatId, userId);
+          break;
+
+        case 'share_achievement':
+          await this.shareAchievement(chatId, userId);
+          break;
+
+        case 'community_stats':
+          await this.showCommunityStats(chatId, userId);
+          break;
+
+        case 'leaderboard':
+          await this.showLeaderboard(chatId, userId);
           break;
 
         default:
@@ -573,12 +646,209 @@ class TwinGateBot {
       const confirmText = t('language.changed', language);
       await this.bot.sendMessage(chatId, confirmText);
 
-      // 返回主菜單
-      setTimeout(() => {
-        this.handleStartCommand(chatId, userId, { id: userId });
+      // 檢測用戶檔案並顯示個性化界面
+      const ctx = {
+        chat: { id: chatId },
+        from: { id: userId },
+        reply: (text, options) => this.bot.sendMessage(chatId, text, options)
+      };
+
+      setTimeout(async () => {
+        await optimizedVerificationFlow.detectUserProfile(ctx, language);
       }, 1000);
     } catch (error) {
       logger.error('Error in setUserLanguage:', error);
+    }
+  }
+
+  // 新增功能方法
+  async showVerificationProgress(chatId, userId) {
+    try {
+      const session = await getUserSession(userId);
+      const language = session?.language || 'en-US';
+
+      // 模擬驗證狀態
+      const verificationStatus = {
+        verificationLevel: session?.verificationLevel || 0,
+        humanityIndex: session?.humanityIndex || 0,
+        level1Completed: session?.level1Completed || false,
+        level2Completed: session?.level2Completed || false,
+        level3Completed: session?.level3Completed || false,
+        hasSBT: session?.hasSBT || false
+      };
+
+      const progressMessage = progressTracker.getVerificationProgressMessage(verificationStatus, language);
+
+      const keyboard = {
+        inline_keyboard: [
+          [
+            { text: '🚀 Continue Verification', callback_data: 'start_verification' },
+            { text: '🏆 View Achievements', callback_data: 'show_achievements' }
+          ],
+          [
+            { text: '📊 Community Stats', callback_data: 'community_stats' },
+            { text: '🔙 Main Menu', callback_data: 'main_menu' }
+          ]
+        ]
+      };
+
+      await this.bot.sendMessage(chatId, progressMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    } catch (error) {
+      logger.error('Error in showVerificationProgress:', error);
+    }
+  }
+
+  async showAchievements(chatId, userId) {
+    try {
+      const session = await getUserSession(userId);
+      const language = session?.language || 'en-US';
+
+      const verificationStatus = {
+        verificationLevel: session?.verificationLevel || 0,
+        humanityIndex: session?.humanityIndex || 0,
+        level1Completed: session?.level1Completed || false,
+        level2Completed: session?.level2Completed || false,
+        level3Completed: session?.level3Completed || false,
+        hasSBT: session?.hasSBT || false
+      };
+
+      const achievementMessage = progressTracker.createAchievementMessage(verificationStatus, language);
+
+      const keyboard = {
+        inline_keyboard: [
+          [
+            { text: '📤 Share Achievement', callback_data: 'share_achievement' },
+            { text: '🏆 Leaderboard', callback_data: 'leaderboard' }
+          ],
+          [
+            { text: '🔙 Back', callback_data: 'show_progress' }
+          ]
+        ]
+      };
+
+      await this.bot.sendMessage(chatId, achievementMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    } catch (error) {
+      logger.error('Error in showAchievements:', error);
+    }
+  }
+
+  async showInviteFriends(chatId, userId) {
+    try {
+      const session = await getUserSession(userId);
+      const language = session?.language || 'en-US';
+
+      const inviteMessage = socialFeatures.createInviteMessage(userId, language);
+      const statsMessage = await socialFeatures.createReferralStatsMessage(userId, language);
+
+      const keyboard = {
+        inline_keyboard: [
+          [
+            { text: '📋 Copy Invite Link', callback_data: 'copy_invite_link' },
+            { text: '📤 Share Link', callback_data: 'share_invite_link' }
+          ],
+          [
+            { text: '📊 My Referral Stats', callback_data: 'referral_stats' },
+            { text: '🔙 Main Menu', callback_data: 'main_menu' }
+          ]
+        ]
+      };
+
+      await this.bot.sendMessage(chatId, inviteMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+
+      await this.bot.sendMessage(chatId, statsMessage, {
+        parse_mode: 'Markdown'
+      });
+    } catch (error) {
+      logger.error('Error in showInviteFriends:', error);
+    }
+  }
+
+  async shareAchievement(chatId, userId) {
+    try {
+      const session = await getUserSession(userId);
+      const language = session?.language || 'en-US';
+
+      const verificationStatus = {
+        verificationLevel: session?.verificationLevel || 0,
+        humanityIndex: session?.humanityIndex || 0,
+        hasSBT: session?.hasSBT || false
+      };
+
+      const shareMessage = socialFeatures.createShareMessage(verificationStatus, language);
+
+      await this.bot.sendMessage(chatId,
+        `📤 **Share Your Achievement**\n\nCopy the message below and share it with your friends:\n\n` +
+        `\`\`\`\n${shareMessage}\n\`\`\`\n\n` +
+        `🔗 **Invite Link:** ${socialFeatures.generateInviteLink(userId)}`, {
+        parse_mode: 'Markdown'
+      });
+    } catch (error) {
+      logger.error('Error in shareAchievement:', error);
+    }
+  }
+
+  async showCommunityStats(chatId, userId) {
+    try {
+      const session = await getUserSession(userId);
+      const language = session?.language || 'en-US';
+
+      const statsMessage = socialFeatures.createCommunityStatsMessage(language);
+
+      const keyboard = {
+        inline_keyboard: [
+          [
+            { text: '🏆 Leaderboard', callback_data: 'leaderboard' },
+            { text: '👥 Invite Friends', callback_data: 'invite_friends' }
+          ],
+          [
+            { text: '🔙 Back', callback_data: 'show_progress' }
+          ]
+        ]
+      };
+
+      await this.bot.sendMessage(chatId, statsMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    } catch (error) {
+      logger.error('Error in showCommunityStats:', error);
+    }
+  }
+
+  async showLeaderboard(chatId, userId) {
+    try {
+      const session = await getUserSession(userId);
+      const language = session?.language || 'en-US';
+
+      const leaderboardMessage = socialFeatures.createLeaderboardMessage(language);
+
+      const keyboard = {
+        inline_keyboard: [
+          [
+            { text: '🚀 Improve My Score', callback_data: 'start_verification' },
+            { text: '📊 Community Stats', callback_data: 'community_stats' }
+          ],
+          [
+            { text: '🔙 Back', callback_data: 'show_achievements' }
+          ]
+        ]
+      };
+
+      await this.bot.sendMessage(chatId, leaderboardMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    } catch (error) {
+      logger.error('Error in showLeaderboard:', error);
     }
   }
 
