@@ -32,16 +32,17 @@ class ProgressTracker {
     const totalProgress = Math.min(level / 3 * 100, 100);
     const progressBar = this.createProgressBar(level, 3, 12);
 
-    const message = t('progress.title', language) + '\n\n' +
-      t('progress.overall', language, { percent: Math.floor(totalProgress) }) + '\n' +
-      `${progressBar} ` + t('progress.levels', language, { current: level, total: 3 }) + '\n\n' +
-      `*Verification Levels:*\n` +
-      `${level >= 1 ? t('level.completed', language) : t('level.pending', language)} ${t('level.1.title', language)}\n` +
-      `${level >= 2 ? t('level.completed', language) : t('level.pending', language)} ${t('level.2.title', language)}\n` +
-      `${level >= 3 ? t('level.completed', language) : t('level.pending', language)} ${t('level.3.title', language)}\n\n` +
-      t('progress.humanity_index', language, { score: humanityIndex }) + '\n' +
+    // 簡化消息，避免 Markdown 錯誤
+    const message = `📊 Verification Progress\n\n` +
+      `Overall Progress: ${Math.floor(totalProgress)}%\n` +
+      `${progressBar} ${level}/3 levels\n\n` +
+      `Verification Levels:\n` +
+      `${level >= 1 ? '✅' : '⭕'} Level 1 - Basic verification\n` +
+      `${level >= 2 ? '✅' : '⭕'} Level 2 - Phone verification\n` +
+      `${level >= 3 ? '✅' : '⭕'} Level 3 - Advanced verification\n\n` +
+      `Humanity Index: ${humanityIndex}/255\n` +
       `${this.createProgressBar(humanityIndex, 255, 15)}\n\n` +
-      `${this.getNextStepMessage(level, language)}`;
+      `🎯 Next: Complete Level ${level + 1} to unlock SBT minting`;
 
     return message;
   }

@@ -59,43 +59,15 @@ class OptimizedVerificationFlow {
    * 智能語言選擇 - 優先顯示檢測到的語言
    */
   async showSmartLanguageSelection(ctx, firstName, detectedLanguage) {
-    const session = await getUserSession(ctx.from.id);
-    const currentLanguage = session?.language || detectedLanguage;
+    const message = `👋 Hi ${firstName}!\n\n🌍 Choose your preferred language:`;
 
-    const message = t('language.choose', currentLanguage, { name: firstName });
-
-    // 優先顯示檢測到的語言
-    const primaryLanguages = [
-      { code: detectedLanguage, name: this.getLanguageDisplayName(detectedLanguage), detected: true },
-      { code: 'en-US', name: 'English', detected: false }
+    const buttons = [
+      [Markup.button.callback('✨ 繁體中文 (Detected)', 'lang_zh-TW')],
+      [Markup.button.callback('English', 'lang_en-US')],
+      [Markup.button.callback('简体中文', 'lang_zh-CN')],
+      [Markup.button.callback('日本語', 'lang_ja-JP')],
+      [Markup.button.callback('Español', 'lang_es-ES')]
     ];
-
-    // 其他常用語言
-    const otherLanguages = [
-      'zh-TW', 'zh-CN', 'ja-JP', 'es-ES', 'fr-FR', 'ar-SA', 'ru-RU'
-    ].filter(lang => lang !== detectedLanguage && lang !== 'en-US')
-     .map(code => ({ code, name: this.getLanguageDisplayName(code), detected: false }));
-
-    const buttons = [];
-
-    // 主要語言按鈕
-    primaryLanguages.forEach(lang => {
-      const text = lang.detected ? `✨ ${lang.name} (Detected)` : lang.name;
-      buttons.push([Markup.button.callback(text, `lang_${lang.code}`)]);
-    });
-
-    // 分隔線
-    const otherLanguagesText = t('language.other_languages', currentLanguage);
-    buttons.push([Markup.button.callback(otherLanguagesText, 'show_more_languages')]);
-
-    // 其他語言（折疊）
-    if (session?.showAllLanguages) {
-      otherLanguages.forEach(lang => {
-        buttons.push([Markup.button.callback(lang.name, `lang_${lang.code}`)]);
-      });
-      const showLessText = t('language.show_less', currentLanguage);
-      buttons.push([Markup.button.callback(showLessText, 'show_less_languages')]);
-    }
 
     await ctx.reply(message, {
       reply_markup: Markup.inlineKeyboard(buttons)
@@ -109,15 +81,15 @@ class OptimizedVerificationFlow {
     const userId = ctx.from.id;
     const firstName = ctx.from.first_name || 'Friend';
 
-    const welcomeMessage = t('welcome.message', language, { name: firstName });
+    // 簡化消息，避免 Markdown 錯誤
+    const welcomeMessage = `🌍 Welcome to Twin Gate!\n\nHello ${firstName}! Prove your humanity and earn your digital identity.`;
 
     const buttons = [
-      [Markup.button.callback(t('buttons.start_verification', language), 'start_verification')],
-      [Markup.button.callback(t('buttons.language_settings', language), 'language_settings')]
+      [Markup.button.callback('🚀 Start Verification', 'start_verification')],
+      [Markup.button.callback('🌍 Language Settings', 'language_settings')]
     ];
 
     await ctx.reply(welcomeMessage, {
-      parse_mode: 'Markdown',
       reply_markup: Markup.inlineKeyboard(buttons)
     });
   }

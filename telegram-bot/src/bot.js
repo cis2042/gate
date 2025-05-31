@@ -639,7 +639,6 @@ class TwinGateBot {
       };
 
       await this.bot.sendMessage(chatId, progressMessage, {
-        parse_mode: 'Markdown',
         reply_markup: keyboard
       });
     } catch (error) {
