@@ -25,11 +25,11 @@ const translations = {
     'language.show_less': '⬆️ Show Less',
 
     // 進度相關
-    'progress.title': '📊 **Verification Progress**',
-    'progress.overall': '**Overall Progress:** {percent}%',
+    'progress.title': '📊 *Verification Progress*',
+    'progress.overall': '*Overall Progress:* {percent}%',
     'progress.levels': '{current}/{total} levels',
-    'progress.humanity_index': '**Humanity Index:** {score}/255',
-    'progress.next_step': '🎯 **Next:** Complete Level {level} to unlock SBT minting',
+    'progress.humanity_index': '*Humanity Index:* {score}/255',
+    'progress.next_step': '🎯 *Next:* Complete Level {level} to unlock SBT minting',
 
     // 驗證等級
     'level.1.title': 'Level 1 - Basic verification',
@@ -83,11 +83,11 @@ const translations = {
     'language.show_less': '⬆️ 顯示較少',
 
     // 進度相關
-    'progress.title': '📊 **驗證進度**',
-    'progress.overall': '**整體進度：** {percent}%',
+    'progress.title': '📊 *驗證進度*',
+    'progress.overall': '*整體進度:* {percent}%',
     'progress.levels': '{current}/{total} 等級',
-    'progress.humanity_index': '**人性指數：** {score}/255',
-    'progress.next_step': '🎯 **下一步：** 完成 Level {level} 以解鎖 SBT 鑄造',
+    'progress.humanity_index': '*人性指數:* {score}/255',
+    'progress.next_step': '🎯 *下一步:* 完成 Level {level} 以解鎖 SBT 鑄造',
 
     // 驗證等級
     'level.1.title': 'Level 1 - 基礎驗證',
