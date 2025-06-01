@@ -695,15 +695,14 @@ class TwinGateBot {
   }
 }
 
-// Create and export bot instance
-const twinGateBot = new TwinGateBot();
+// Export the class for testing, and create instance for direct execution
+module.exports = TwinGateBot;
 
 // Start bot if this file is run directly
 if (require.main === module) {
+  const twinGateBot = new TwinGateBot();
   twinGateBot.start().catch((error) => {
     logger.error('Failed to start bot:', error);
     process.exit(1);
   });
 }
-
-module.exports = twinGateBot;
