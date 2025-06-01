@@ -2,6 +2,28 @@
 
 Twin Gate 多渠道人類驗證平台的全面 Telegram 機器人。此機器人讓使用者能夠直接通過 Telegram 完成身份驗證、管理個人資料，並鑄造靈魂綁定代幣（SBT）。
 
+## 🎉 穩定版本狀態
+
+✅ **當前版本正常運行** - 語言一致性問題已完全解決
+
+### 📋 版本信息
+- **穩定版本**: 1.0.0-stable
+- **部署狀態**: 生產環境運行中 ✅
+- **Bot 用戶名**: [@twin3bot](https://t.me/twin3bot)
+- **服務器**: Google Compute Engine (34.80.77.23)
+- **健康檢查**: http://34.80.77.23/health
+
+### 🚀 快速測試
+1. 開啟 Telegram → 搜尋 [@twin3bot](https://t.me/twin3bot)
+2. 發送 `/start` → 語言選擇界面
+3. 選擇語言 → 歡迎界面 (語言一致)
+4. 開始驗證 → 3級驗證流程
+
+### 📁 穩定版本文件
+- **主要文件**: `src/bot-stable.js` ⭐ (推薦使用)
+- **配置文件**: `ecosystem.stable.config.js`
+- **部署說明**: [STABLE-DEPLOYMENT.md](./STABLE-DEPLOYMENT.md)
+
 ## 🚀 功能特色
 
 ### 核心功能
